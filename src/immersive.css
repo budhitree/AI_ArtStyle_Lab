@@ -1,0 +1,430 @@
+@import 'style.css';
+
+/* =============================
+   沉浸模式 - 美术馆级展示
+   设计灵感：高端数字艺术展厅
+   ============================= */
+
+.immersive-viewer {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000000;
+    z-index: 3000;
+    opacity: 0;
+    transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+.immersive-viewer.active {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+}
+
+/*  subtle gradient overlay for depth */
+.immersive-viewer::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: transparent;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* 顶部按钮栏 - 极简设计 */
+.immersive-header {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 1.5rem 2.5rem;
+    z-index: 1000;
+}
+
+.immersive-btn {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+    padding: 0.6rem 1.25rem;
+    font-size: 0.75rem;
+    font-weight: 400;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 4px;
+    backdrop-filter: blur(20px);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+}
+
+.immersive-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
+}
+
+.immersive-btn:active {
+    transform: translateY(0);
+}
+
+/* 展示容器 - 垂直居中布局 */
+.immersive-carousel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem 2rem;
+    position: relative;
+    gap: 2.5rem;
+    z-index: 10;
+}
+
+/* 幻灯片容器 - 带精致阴影 */
+.immersive-slide {
+    position: relative;
+    width: auto;
+    max-width: 100%;
+    max-height: 60vh;
+    border-radius: 2px;
+    overflow: visible;
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+    cursor: pointer;
+}
+
+.immersive-slide img {
+    max-width: 100%;
+    max-height: 60vh;
+    object-fit: contain;
+    display: block;
+    border-radius: 2px;
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    /* Subtle shadow for depth */
+    filter: drop-shadow(0 20px 40px rgba(0, 0, 0, 0.4));
+}
+
+/* 上一页/下一页隐藏 */
+.immersive-slide.prev-slide,
+.immersive-slide.next-slide {
+    display: none;
+}
+
+/* 图片信息 - 美术馆标签式布局 */
+.immersive-info {
+    width: 100%;
+    max-width: 700px;
+    text-align: center;
+    padding: 2rem 2.5rem;
+    z-index: 50;
+    opacity: 1;
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    /* 精致的背景卡片 */
+    background: linear-gradient(180deg, transparent 0%, rgba(255, 255, 255, 0.02) 100%);
+    border-radius: 8px;
+}
+
+.immersive-title-artist-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.immersive-title {
+    font-family: var(--font-serif);
+    font-size: 2rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.95);
+    margin: 0;
+    letter-spacing: -0.01em;
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 70%;
+}
+
+.immersive-artist {
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    white-space: nowrap;
+}
+
+.immersive-prompt {
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 300;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+    max-height: 100px;
+    overflow-y: auto;
+    opacity: 0.6;
+    padding: 0 1rem;
+}
+
+/* 去掉之前的 prompt-box 相关样式 */
+.immersive-prompt-box {
+    display: none;
+}
+
+.prompt-label {
+    display: none;
+}
+
+.prompt-label {
+    display: block;
+    font-size: 0.65rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(255, 255, 255, 0.4);
+    margin-bottom: 0.6rem;
+}
+
+.immersive-prompt {
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 300;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0;
+    max-height: 100px;
+    overflow-y: auto;
+}
+
+/* 自定义滚动条 */
+.immersive-prompt::-webkit-scrollbar {
+    width: 4px;
+}
+
+.immersive-prompt::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.immersive-prompt::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+}
+
+.immersive-prompt::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* 页码计数器 - 左上角精致设计 */
+.immersive-counter {
+    position: absolute;
+    top: 2rem;
+    left: 2.5rem;
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.4);
+    z-index: 100;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+}
+
+/* 设置弹窗 - 精致模态框 */
+.immersive-settings-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    background: rgba(20, 20, 22, 0.98);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 2rem 1.75rem;
+    z-index: 10000;
+    width: 90%;
+    max-width: 380px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(30px);
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+}
+
+.immersive-settings-modal.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.immersive-settings-modal h3 {
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.95);
+    margin-bottom: 1.5rem;
+    text-align: center;
+    letter-spacing: -0.01em;
+}
+
+.setting-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.setting-item:last-child {
+    border-bottom: none;
+}
+
+.setting-item label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    font-weight: 400;
+}
+
+.setting-item select {
+    background: rgba(30, 30, 35, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 1);
+    padding: 0.5rem 0.85rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+    outline: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M8 11l-5-5 1.41-1.41L8 8.17l3.59-3.58L13 6l-5 5z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 12px;
+}
+
+.setting-item select:hover {
+    background-color: rgba(40, 40, 45, 0.9);
+    border-color: rgba(255, 255, 255, 0.25);
+    color: rgba(255, 255, 255, 1);
+}
+
+.setting-item select:focus {
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+/* 下拉菜单样式 */
+.setting-item select option {
+    background: rgba(20, 20, 22, 0.98);
+    color: rgba(255, 255, 255, 1);
+    padding: 0.5rem;
+}
+
+.setting-item select option:checked {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 1);
+}
+
+.settings-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    backdrop-filter: blur(4px);
+}
+
+.settings-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* 响应式设计 */
+@media (max-width: 1024px) {
+    .immersive-carousel {
+        padding: 1rem;
+        gap: 2rem;
+    }
+
+    .immersive-slide {
+        max-height: 55vh;
+    }
+
+    .immersive-slide img {
+        max-height: 55vh;
+    }
+
+    .immersive-title {
+        font-size: 1.5rem;
+    }
+
+    .immersive-title-artist-row {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: center;
+    }
+
+    .immersive-title {
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .immersive-header {
+        padding: 1rem 1.25rem;
+        gap: 0.5rem;
+    }
+
+    .immersive-btn {
+        padding: 0.5rem 0.9rem;
+        font-size: 0.65rem;
+    }
+
+    .immersive-carousel {
+        padding: 0.5rem;
+        gap: 1.5rem;
+    }
+
+    .immersive-slide {
+        max-height: 45vh;
+    }
+
+    .immersive-slide img {
+        max-height: 45vh;
+    }
+
+    .immersive-info {
+        padding: 1.5rem 1.25rem;
+    }
+
+    .immersive-title {
+        font-size: 1.25rem;
+    }
+
+    .immersive-artist {
+        font-size: 0.7rem;
+    }
+
+    .immersive-prompt {
+        font-size: 0.8rem;
+        max-height: 80px;
+    }
+
+    .immersive-counter {
+        left: 1.25rem;
+        top: 1.25rem;
+    }
+
+    .immersive-title-artist-row {
+        gap: 0.25rem;
+    }
+}

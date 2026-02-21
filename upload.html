@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="AI艺术实验室 - 上传您的作品。" />
+    <title>AI艺术实验室 | 上传作品</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/src/style.css">
+    <link rel="stylesheet" href="/src/create.css">
+    <link rel="stylesheet" href="/src/cursor.css">
+</head>
+
+<body>
+    <div class="cursor-dot"></div>
+    <div class="cursor-outline"></div>
+
+    <nav class="navbar" style="position:absolute; width:100%; top:0; left:0; padding: 2rem 4rem;">
+        <div class="logo">
+            <a href="/" style="text-decoration:none; color:inherit;">
+                <div class="logo-main">AI</div>
+                <div class="logo-right">
+                    <div class="logo-chinese">艺术实验室</div>
+                    <div class="logo-english">ArtStyle Lab</div>
+                </div>
+            </a>
+        </div>
+        <div class="nav-links">
+            <a href="/" class="nav-item">返回画廊</a>
+        </div>
+    </nav>
+
+    <div id="app" class="create-container">
+        <div class="split-layout">
+            <!-- Workbench Panel -->
+            <div class="workbench-panel">
+                <header class="workbench-header">
+                    <h2>上传您的作品</h2>
+                    <p>填写以下信息，上传您的艺术作品到画廊。</p>
+                </header>
+
+                <div class="prompt-builder">
+                    <div class="form-group">
+                        <label class="form-label">图片文件</label>
+                        <input type="file" id="art-file" accept="image/*" class="hidden">
+                        <div class="file-drop-area" id="drop-area">
+                            <span class="file-msg">点击或拖拽图片到此处</span>
+                            <img id="preview-img" style="max-height:100px; margin: 1rem auto; display:none;">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">标题</label>
+                        <input type="text" id="art-title" class="form-input" required placeholder="为您的杰作命名">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">AI 提示词</label>
+                        <textarea id="art-prompt" class="form-textarea" placeholder="描述用于生成的提示词..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">作品简介</label>
+                        <textarea id="art-desc" class="form-textarea" placeholder="分享您的创意灵感，介绍作品的创作过程，或讲述您正在开展的艺术实验..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="add-to-gallery" checked>
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-text">添加到画廊展示</span>
+                            <span class="checkbox-description">选中后作品将在公共画廊中展示</span>
+                        </label>
+                    </div>
+
+                    <button type="submit" class="nexus-btn primary block" id="submit-art-btn">提交</button>
+
+                    <div id="status-display" class="status-msg hidden"></div>
+                </div>
+            </div>
+
+            <!-- Preview Panel -->
+            <div class="preview-panel">
+                <div class="preview-content">
+                    <div class="preview-container" id="preview-container">
+                        <div class="empty-state">
+                            <div class="placeholder-icon">🎨</div>
+                            <p>上传的作品将展示在这里</p>
+                        </div>
+                        <!-- Images will be injected here -->
+                        <div id="ai-results-wrapper" class="hidden">
+                            <div id="results-grid" class="results-grid-lg"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/upload.js"></script>
+</body>
+
+</html>

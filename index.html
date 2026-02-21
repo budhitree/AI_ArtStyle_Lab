@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="AI艺术实验室 - 探索数字杰作的未来主义 AI 艺术创作空间。" />
+  <title>AI艺术实验室 | AI ArtStyle Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="stylesheet" href="/src/immersive.css">
+  <link rel="stylesheet" href="/src/about.css">
+  <link rel="stylesheet" href="/src/cursor.css">
+  <link rel="stylesheet" href="/src/upload.css">
+  <link rel="stylesheet" href="/src/ai-generator.css">
+  <link rel="stylesheet" href="/src/exhibitions.css">
+</head>
+
+<body>
+  <div class="cursor-dot"></div>
+  <div class="cursor-outline"></div>
+  <div id="app">
+    <nav class="navbar">
+      <div class="logo">
+        <div class="logo-main">AI</div>
+        <div class="logo-right">
+          <div class="logo-chinese">艺术实验室</div>
+          <div class="logo-english">ArtStyle Lab</div>
+        </div>
+      </div>
+      <div class="nav-links">
+        <a href="#" class="nav-item active" data-view="gallery">参观画廊</a>
+        <a href="#" class="nav-item" data-view="exhibitions">主题展览</a>
+        <a href="#" class="nav-item" data-view="my-works">我的作品</a>
+        <a href="/create.html" class="nav-create-btn">AI 创作</a>
+        <button id="nav-upload-btn" class="nav-create-btn">上传作品</button>
+        <button id="nav-user-btn" class="auth-btn">用户</button>
+      </div>
+    </nav>
+
+    <main id="main-content">
+      <!-- View: 参观画廊 -->
+      <div id="view-gallery" class="view-section active">
+        <section id="gallery" class="gallery-section">
+          <div class="section-header">
+            <h2 class="section-title">参观画廊</h2>
+            <p class="section-desc">探索所有学生创作的数字艺术作品。</p>
+          </div>
+
+          <!-- 搜索和筛选控制 -->
+          <div class="gallery-controls">
+            <div class="search-box">
+              <input type="text" id="search-input" placeholder="搜索提示词 (Prompt)..." />
+              <span class="search-icon">🔍</span>
+            </div>
+
+
+
+            <!-- 沉浸模式按钮 -->
+            <button id="start-immersive" class="cta-button outline" style="margin-left:auto;">沉浸模式观看</button>
+          </div>
+
+          <div class="gallery-grid" id="gallery-grid">
+            <!-- Gallery items will be injected here by JS -->
+          </div>
+        </section>
+      </div>
+
+      <!-- View: 主题展览 -->
+      <div id="view-exhibitions" class="view-section" style="display:none;">
+        <!-- 展览列表页面 -->
+        <div id="exhibitions-list-view">
+          <section class="exhibitions-section">
+            <div class="section-header">
+              <h2 class="section-title">主题展览</h2>
+              <p class="section-desc">由教师策划的专题艺术展览，每件作品都围绕特定主题精心挑选。</p>
+            </div>
+
+            <div class="exhibitions-grid" id="exhibitions-grid">
+              <!-- 展览卡片将由 JS 注入 -->
+            </div>
+          </section>
+        </div>
+
+        <!-- 单个展览详情页面 -->
+        <div id="exhibition-detail-view" style="display:none;">
+          <div class="exhibition-header">
+            <button id="back-to-exhibitions" class="back-btn">← 返回展览列表</button>
+            <button id="exhibition-immersive-btn" class="cta-button outline">沉浸模式观看</button>
+          </div>
+          <div class="section-header">
+            <h2 class="section-title" id="exhibition-title">展览标题</h2>
+            <p class="section-desc" id="exhibition-description">展览描述</p>
+            <p class="exhibition-curator">策展人：<span id="exhibition-curator"></span></p>
+          </div>
+          <div class="gallery-grid" id="exhibition-artworks-grid">
+            <!-- 展览作品将由 JS 注入 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- View: 我的作品 -->
+      <div id="view-my-works" class="view-section" style="display:none;">
+        <section class="my-works-section">
+          <div class="section-header">
+            <h2 class="section-title">我的作品</h2>
+            <p class="section-desc">管理您创作的所有作品，包括 AI 生成和手动上传的。</p>
+          </div>
+
+          <div class="my-works-tabs">
+            <button class="tab-btn active" data-tab="all">全部作品</button>
+            <button class="tab-btn" data-tab="gallery">已在画廊展示</button>
+            <button class="tab-btn" data-tab="hidden">隐藏作品</button>
+          </div>
+
+          <div class="my-works-grid" id="my-works-grid">
+            <!-- 我的作品将由 JS 注入 -->
+          </div>
+        </section>
+      </div>
+
+
+    </main>
+
+    <footer class="footer">
+      <p>&copy; 2026 AI艺术实验室 | AI ArtStyle Lab.</p>
+    </footer>
+
+    <!-- Image Modal -->
+    <div id="modal" class="modal">
+      <button class="close-modal">&times; 关闭</button>
+      <div class="modal-inner">
+        <div class="modal-image-wrapper">
+          <img id="modal-image" src="" alt="Artwork Detail">
+        </div>
+        <div class="modal-text">
+          <h3 id="modal-title">Artwork Title</h3>
+          <p id="modal-artist">Artist</p>
+          <p id="modal-desc">Description goes here.</p>
+          <p id="modal-prompt">Prompt goes here.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Immersive Mode Overlay -->
+    <div id="immersive-viewer" class="immersive-viewer">
+      <div class="immersive-header">
+        <button id="immersive-settings-btn" class="immersive-btn">
+          <span>设置</span>
+        </button>
+        <button id="immersive-close-btn" class="immersive-btn">
+          <span>退出</span>
+        </button>
+      </div>
+
+      <div class="immersive-carousel">
+        <!-- 单张图片显示 -->
+        <div class="immersive-slide">
+          <img id="immersive-img" src="" alt="Art">
+        </div>
+        <!-- 图片信息显示在下方 -->
+        <div class="immersive-info">
+          <div class="immersive-title-artist-row">
+            <h2 id="immersive-title" class="immersive-title"></h2>
+            <span id="immersive-artist" class="immersive-artist"></span>
+          </div>
+          <p id="immersive-prompt" class="immersive-prompt"></p>
+        </div>
+      </div>
+
+      <div class="immersive-counter">
+        <span id="current-index">1</span> / <span id="total-count">6</span>
+      </div>
+    </div>
+
+    <!-- Immersive Settings Modal -->
+    <div class="settings-overlay" id="settings-overlay"></div>
+    <div id="immersive-settings-modal" class="immersive-settings-modal">
+      <h3>沉浸模式设置</h3>
+      <div class="setting-item">
+        <label>自动播放间隔</label>
+        <select id="autoplay-interval-select">
+          <option value="3">3 秒</option>
+          <option value="5" selected>5 秒</option>
+          <option value="8">8 秒</option>
+          <option value="10">10 秒</option>
+        </select>
+      </div>
+      <div class="setting-item">
+        <label>自动播放</label>
+        <button id="toggle-autoplay-btn" class="immersive-btn" style="padding: 0.5rem 1rem; font-size: 0.85rem;">开启</button>
+      </div>
+      <div class="setting-item">
+        <label>图片过渡速度</label>
+        <select id="transition-speed-select">
+          <option value="0.3">快速</option>
+          <option value="0.6" selected>正常</option>
+          <option value="1">慢速</option>
+        </select>
+      </div>
+      <button id="close-settings-btn" class="immersive-btn" style="width: 100%; margin-top: 1.5rem;">关闭</button>
+    </div>
+
+    <!-- Auth Modal (Login/Register) -->
+    <div id="auth-modal" class="upload-modal">
+      <div class="upload-container">
+        <button class="close-auth">&times;</button>
+
+        <div class="upload-tab-nav">
+          <button class="tab-btn active" data-tab="login">登录</button>
+          <button class="tab-btn" data-tab="register">注册</button>
+        </div>
+
+        <!-- Login View -->
+        <div id="tab-login" class="tab-content">
+          <h3 style="margin-bottom:1rem; font-family:var(--font-serif)">登录</h3>
+          <p style="margin-bottom:2rem; color:#666; font-size:0.9rem">
+            输入您的学号/工号和密码登录系统
+          </p>
+
+          <div class="form-group">
+            <label class="form-label">学号/工号</label>
+            <input type="text" id="login-id" class="form-input" placeholder="学生：20250101 / 教师：2506049 / 管理员：admin">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">密码</label>
+            <input type="password" id="login-password" class="form-input" placeholder="默认密码：123456">
+          </div>
+
+          <button id="do-login-btn" class="submit-btn">登录</button>
+
+          <p style="text-align:center; margin-top:1.5rem; color:#666; font-size:0.9rem;">
+            还没有账号？<a href="#" id="goto-register" style="color:var(--text-primary); text-decoration:underline;">立即注册</a>
+          </p>
+        </div>
+
+        <!-- Register View -->
+        <div id="tab-register" class="tab-content hidden">
+          <h3 style="margin-bottom:1rem; font-family:var(--font-serif)">注册账号</h3>
+          <p style="margin-bottom:2rem; color:#666; font-size:0.9rem">
+            创建新账号以使用系统功能
+          </p>
+
+          <div class="form-group">
+            <label class="form-label">用户类型</label>
+            <select id="register-type" class="form-input">
+              <option value="student">学生</option>
+              <option value="teacher">教师</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" id="register-id-label">学号（8 位数字）</label>
+            <input type="text" id="register-id" class="form-input" placeholder="例如：20250101">
+            <small style="color:#888; font-size:0.85rem; display:block; margin-top:0.5rem;">
+              格式：年级 (4 位)+班级 (2 位)+学号 (2 位)
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">姓名</label>
+            <input type="text" id="register-name" class="form-input" placeholder="请输入真实姓名">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">密码</label>
+            <input type="password" id="register-password" class="form-input" placeholder="设置登录密码（至少 6 位）">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">确认密码</label>
+            <input type="password" id="register-password-confirm" class="form-input" placeholder="再次输入密码">
+          </div>
+
+          <button id="do-register-btn" class="submit-btn">注册</button>
+
+          <p style="text-align:center; margin-top:1.5rem; color:#666; font-size:0.9rem;">
+            已有账号？<a href="#" id="goto-login-from-register"
+              style="color:var(--text-primary); text-decoration:underline;">立即登录</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+
+
+    <!-- Profile Modal (Compact) -->
+    <div id="profile-modal" class="profile-modal-compact">
+      <div class="profile-compact-container">
+        <div class="profile-header">
+          <h3>个人中心</h3>
+          <button class="close-profile-btn">&times;</button>
+        </div>
+
+        <div class="profile-compact-info">
+          <div class="profile-row">
+            <span class="profile-label">账号：</span>
+            <span class="profile-value" id="profile-id">-</span>
+          </div>
+          <div class="profile-row">
+            <span class="profile-label">姓名：</span>
+            <span class="profile-value" id="profile-name">-</span>
+          </div>
+          <div class="profile-row">
+            <span class="profile-label">类型：</span>
+            <span class="profile-value" id="profile-type">-</span>
+          </div>
+          <div class="profile-row">
+            <span class="profile-label">加入：</span>
+            <span class="profile-value" id="profile-joined">-</span>
+          </div>
+        </div>
+
+        <div class="profile-actions">
+          <button id="edit-profile-btn" class="action-btn">编辑资料</button>
+          <button id="logout-btn-compact" class="action-btn logout-btn">退出登录</button>
+        </div>
+
+        <!-- 编辑资料弹窗 -->
+        <div id="edit-profile-panel" class="edit-panel hidden">
+          <hr class="divider">
+          <h4 class="panel-title">修改姓名</h4>
+          <div class="form-group compact">
+            <input type="text" id="profile-new-name" class="form-input compact" placeholder="输入新姓名">
+            <button id="update-name-btn" class="btn-sm">更新</button>
+          </div>
+
+          <h4 class="panel-title">修改密码</h4>
+          <div class="form-group compact">
+            <input type="password" id="profile-old-password" class="form-input compact" placeholder="当前密码">
+          </div>
+          <div class="form-group compact">
+            <input type="password" id="profile-new-password" class="form-input compact" placeholder="新密码">
+          </div>
+          <div class="form-group compact">
+            <input type="password" id="profile-new-password-confirm" class="form-input compact" placeholder="确认新密码">
+            <button id="update-password-btn" class="btn-sm">更新密码</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 编辑作品弹窗 -->
+    <div id="edit-work-modal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>编辑作品</h2>
+          <button class="close-modal-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="edit-work-title">标题</label>
+            <input type="text" id="edit-work-title" class="form-input" placeholder="作品标题">
+          </div>
+          <div class="form-group">
+            <label for="edit-work-prompt">提示词</label>
+            <textarea id="edit-work-prompt" class="form-textarea" rows="3" placeholder="AI提示词..."></textarea>
+          </div>
+          <div class="form-group">
+            <label for="edit-work-desc">作品简介</label>
+            <textarea id="edit-work-desc" class="form-textarea" rows="3" placeholder="作品简介..."></textarea>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-secondary cancel-edit-btn">取消</button>
+            <button class="btn btn-primary save-edit-btn">保存</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 创建/编辑展览弹窗 -->
+    <div id="exhibition-edit-modal" class="modal-overlay">
+      <div class="modal-content large-modal">
+        <div class="modal-header">
+          <h2 id="exhibition-modal-title">创建新展览</h2>
+          <button class="close-modal-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <form id="exhibition-edit-form">
+            <input type="hidden" id="edit-exhibition-id">
+
+            <div class="form-group">
+              <label class="form-label">展览标题 *</label>
+              <input type="text" id="exhibition-title-input" class="form-input" required placeholder="输入展览标题">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">展览描述</label>
+              <textarea id="exhibition-desc-input" class="form-textarea" rows="3" placeholder="描述展览主题和理念..."></textarea>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">封面图片</label>
+              <input type="text" id="exhibition-cover-input" class="form-input" placeholder="输入封面图片 URL（留空则自动使用展览中第一张图片）">
+              <small class="form-hint">如果不填写，将自动使用展览中第一张图片作为封面</small>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">选择展览作品</label>
+              <p class="form-hint">点击作品进行选择，再次点击取消选择</p>
+              <div id="exhibition-artwork-selector" class="artwork-selector-grid">
+                <!-- 作品选择器将由 JS 注入 -->
+              </div>
+              <div id="selected-artworks-count" class="selected-count">已选择 <span>0</span> 件作品</div>
+            </div>
+
+
+
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary cancel-edit-btn">取消</button>
+              <button type="submit" class="btn btn-primary">提交</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- 删除展览确认弹窗 -->
+    <div id="exhibition-delete-modal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>确认删除</h2>
+          <button class="close-modal-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p>确定要删除这个展览吗？此操作不可撤销。</p>
+          <input type="hidden" id="delete-exhibition-id">
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary cancel-delete-btn">取消</button>
+            <button type="button" class="btn btn-danger confirm-delete-btn">删除</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+
+</html>

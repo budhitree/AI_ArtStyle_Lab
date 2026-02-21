@@ -1,0 +1,1066 @@
+/* 主题展览页面样式 */
+
+.exhibitions-section {
+    padding: 8rem 0 4rem;
+}
+
+.exhibitions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 3rem;
+    padding: 2rem 4rem 4rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.exhibition-card {
+    background: var(--bg-primary);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.exhibition-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.exhibition-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+.exhibition-card-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    background: var(--bg-secondary);
+}
+
+.exhibition-card-content {
+    padding: 1.5rem;
+}
+
+.exhibition-card-title {
+    font-family: var(--font-serif);
+    font-size: 1.4rem;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+}
+
+.exhibition-card-desc {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.exhibition-card-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.exhibition-card-count {
+    background: var(--bg-secondary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+}
+
+/* 展览卡片操作按钮 */
+.exhibition-card-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--bg-secondary);
+}
+
+.exhibition-card-actions button {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--text-primary);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.exhibition-card-actions button:hover {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+}
+
+.exhibition-card-actions .delete-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.exhibition-card-actions .delete-btn:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.2);
+    opacity: 1;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 展览详情页面 */
+
+.exhibition-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2rem 4rem;
+    background: var(--bg-secondary);
+    margin-bottom: 2rem;
+    margin-top: 0;
+}
+
+.back-btn {
+    background: var(--bg-primary);
+    border: 1px solid var(--text-primary);
+    color: var(--text-primary);
+    padding: 0.75rem 2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+}
+
+.exhibition-curator {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-top: 1rem;
+}
+
+/* 展览详情页作品网格 */
+
+#exhibition-artworks-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.5rem;
+    padding: 2rem 4rem 4rem;
+}
+
+.gallery-item {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+    cursor: pointer;
+}
+
+.gallery-item.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.gallery-item img {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: contain;
+    background-color: var(--bg-secondary);
+    border-radius: 8px;
+    transition: transform 0.7s cubic-bezier(0.2, 1, 0.3, 1);
+    filter: grayscale(10%);
+}
+
+.gallery-item:hover img {
+    transform: scale(1.05);
+    filter: grayscale(0%);
+}
+
+.gallery-item-overlay {
+    padding-top: 0.75rem;
+    text-align: center;
+}
+
+.gallery-item-overlay h4 {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    color: var(--text-primary);
+    margin: 0 0 0.25rem 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.gallery-item-overlay p {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 300;
+    color: var(--text-secondary);
+    opacity: 0.7;
+    margin: 0;
+    white-space: nowrap;
+}
+
+/* 展览详情页 section-header */
+
+#exhibition-detail-view .section-header {
+    margin-bottom: 3rem;
+    text-align: center;
+    padding: 2rem 2rem 0;
+}
+
+#exhibition-detail-view .section-title {
+    font-size: 2.5rem;
+    margin-bottom: 1.5rem;
+}
+
+#exhibition-detail-view .section-desc {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* 我的作品页面 */
+
+.my-works-section {
+    padding: 10rem 0 4rem;
+}
+
+.my-works-tabs {
+    display: flex;
+    gap: 2rem;
+    padding: 2rem 4rem;
+    border-bottom: 1px solid var(--bg-secondary);
+    margin-bottom: 4rem;
+}
+
+.my-works-tabs .tab-btn {
+    background: transparent;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.my-works-tabs .tab-btn.active {
+    color: var(--text-primary);
+    border-bottom-color: var(--text-primary);
+}
+
+.my-works-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 2rem 4rem 4rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.my-work-item {
+    position: relative;
+    background: var(--bg-primary);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+}
+
+.my-work-item:hover {
+    transform: scale(1.02);
+}
+
+.my-work-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.my-work-info {
+    padding: 1rem;
+}
+
+.my-work-title {
+    font-family: var(--font-serif);
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.my-work-type {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* AI 提示词 - 弱化显示 */
+.my-work-prompt {
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 300;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    opacity: 0.5;
+    margin: 0.5rem 0 0.75rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.my-work-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.my-work-actions button {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid var(--bg-secondary);
+    background: transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.my-work-actions button:hover {
+    background: var(--bg-secondary);
+}
+
+.my-work-actions button.active {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    border-color: var(--text-primary);
+}
+
+/* 个人资料弹窗 - 紧凑版 */
+
+.profile-modal-compact {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.profile-modal-compact.active {
+    display: flex;
+}
+
+.profile-compact-container {
+    background: var(--bg-primary);
+    border-radius: 16px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.profile-header h3 {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.close-profile-btn {
+    background: transparent;
+    border: none;
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    line-height: 1;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.close-profile-btn:hover {
+    color: var(--text-primary);
+}
+
+.profile-compact-info {
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.profile-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    font-size: 0.95rem;
+}
+
+.profile-row:not(:last-child) {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.profile-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.profile-value {
+    color: var(--text-primary);
+    font-weight: 400;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.profile-actions .action-btn {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid var(--bg-secondary);
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.2s ease;
+}
+
+.profile-actions .action-btn:hover {
+    background: #e0e0e0;
+}
+
+.profile-actions .action-btn.logout-btn {
+    background: #666;
+    color: white;
+    border-color: #666;
+}
+
+.profile-actions .action-btn.logout-btn:hover {
+    background: #555;
+}
+
+/* 编辑面板 */
+
+.edit-panel {
+    margin-top: 1.5rem;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.edit-panel.hidden {
+    display: none;
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid var(--bg-secondary);
+    margin: 1.5rem 0 1rem;
+}
+
+.panel-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+}
+
+.form-group.compact {
+    margin-bottom: 0.75rem;
+}
+
+.form-group.compact .form-input {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.9rem;
+}
+
+.form-group.compact {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.form-group.compact .form-input {
+    flex: 1;
+}
+
+.btn-sm {
+    padding: 0.6rem 1rem;
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    transition: background 0.2s ease;
+}
+
+.btn-sm:hover {
+    background: #333;
+}
+
+/* 作品选择器网格 */
+.artwork-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+}
+
+.artwork-selector-item {
+    position: relative;
+    cursor: pointer;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 3px solid transparent;
+    transition: all 0.2s ease;
+    background: var(--bg-primary);
+}
+
+.artwork-selector-item.selected {
+    border-color: var(--text-primary);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+}
+
+.artwork-selector-item:hover {
+    border-color: var(--bg-secondary);
+    transform: translateY(-2px);
+}
+
+.artwork-selector-item img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+    display: block;
+}
+
+.artwork-selector-item .artwork-title-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.artwork-selector-item.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    width: 24px;
+    height: 24px;
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.selected-count {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    text-align: right;
+    padding: 0.5rem;
+}
+
+.class-checkboxes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+    padding: 0.5rem;
+}
+
+/* 展览卡片操作按钮 */
+.exhibition-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--bg-secondary);
+}
+
+.exhibition-card-actions button {
+    flex: 1;
+    padding: 0.5rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.exhibition-card-actions .edit-btn {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+.exhibition-card-actions .edit-btn:hover {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+}
+
+.exhibition-card-actions .delete-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.exhibition-card-actions .delete-btn:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.2);
+    opacity: 1;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 删除确认弹窗 */
+#exhibition-delete-modal .modal-body p {
+    margin-bottom: 1.5rem;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+#exhibition-delete-modal .btn-danger {
+    background: #dc3545;
+    color: white;
+    border: none;
+}
+
+#exhibition-delete-modal .btn-danger:hover {
+    background: #c82333;
+}
+
+/* 表单提示 */
+.form-hint {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    display: block;
+}
+
+/* 班级选择复选框 */
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.checkbox-item label {
+    cursor: pointer;
+    margin: 0;
+    font-weight: normal;
+}
+
+/* 班级管理样式 */
+.class-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--bg-secondary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.class-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--bg-secondary);
+}
+
+.class-header h3 {
+    margin: 0;
+    font-size: 1.3rem;
+    font-family: var(--font-serif);
+}
+
+.class-grade {
+    background: var(--bg-secondary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.class-details {
+    margin-bottom: 1.5rem;
+}
+
+.class-details p {
+    margin: 0.5rem 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.class-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+/* 表单和弹窗样式 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* 确保模态框内容可以点击 */
+.modal-overlay.active .modal-content {
+    pointer-events: auto;
+}
+
+.modal-overlay.active .modal-content * {
+    pointer-events: auto;
+}
+
+.modal-content {
+    background: var(--bg-primary);
+    border-radius: 12px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+}
+
+.modal-content.large-modal {
+    max-width: 800px;
+}
+
+.modal-overlay.active .modal-content {
+    transform: translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--bg-secondary);
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-family: var(--font-serif);
+}
+
+.close-modal-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    padding: 0;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background 0.2s ease;
+}
+
+.close-modal-btn:hover {
+    background: var(--bg-secondary);
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--bg-secondary);
+    border-radius: 8px;
+    background: var(--bg-secondary);
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--text-primary);
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.checkbox-item input[type="checkbox"] {
+    margin-right: 0.5rem;
+    width: 16px;
+    height: 16px;
+}
+
+.student-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border: 1px solid var(--bg-secondary);
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+}
+
+.student-info h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.1rem;
+}
+
+.student-info p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+    .exhibitions-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .my-works-tabs {
+        flex-wrap: wrap;
+    }
+
+    .profile-compact-container {
+        margin: 1rem;
+    }
+
+    .modal-content {
+        margin: 1rem;
+        width: calc(100% - 2rem);
+    }
+
+    .class-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .class-actions {
+        flex-direction: column;
+    }
+
+    .student-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .student-actions {
+        align-self: flex-end;
+    }
+}
+
+/* 为我的作品页面添加的样式 */
+.image-container-relative {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.remove-work-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.my-work-item:hover .remove-work-btn {
+    opacity: 1;
+}
+
+.remove-work-btn:hover {
+    opacity: 1 !important;
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.2);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 确保模态框按钮可以点击 */
+.modal-overlay.active .close-modal-btn,
+.modal-overlay.active .cancel-edit-btn,
+.modal-overlay.active .cancel-delete-btn,
+.modal-overlay.active .confirm-delete-btn,
+.modal-overlay.active .btn {
+    pointer-events: auto !important;
+}
+
+/* 班级卡片操作按钮 */
+.class-card-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.class-card-actions .delete-class-btn {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.class-card-actions .delete-class-btn:hover {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.2);
+    opacity: 1;
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* 确保表单内容可以点击 */
+.modal-overlay.active .modal-body,
+.modal-overlay.active .modal-header,
+.modal-overlay.active .form-actions {
+    pointer-events: auto !important;
+    z-index: 1001;
+    position: relative;
+}
