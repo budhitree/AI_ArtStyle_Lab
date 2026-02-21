@@ -41,8 +41,8 @@ function initCreatePageFunctions() {
     const inputScale = document.getElementById('ai-scale');
 
     // Result Actions
-    const btnDownload = document.getElementById('download-selected-btn');
-    const btnSave = document.getElementById('save-to-gallery-btn');
+    let btnDownload = document.getElementById('download-selected-btn');
+    let btnSave = document.getElementById('save-to-gallery-btn');
 
     let currentImages = []; // Array of image objects
     let selectedImages = new Set();
