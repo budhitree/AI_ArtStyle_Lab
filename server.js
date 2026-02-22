@@ -1049,32 +1049,25 @@ app.get('/api/works', async (req, res) => {
     }
 });
 
-// 生产环境：服务构建后的前端文件
-if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, 'dist')));
+// 纯后端API服务，不提供前端文件
+// 只提供上传文件的静态访问
+app.use('/uploads', express.static(UPLOADS_DIR));
 
-    // 所有非 API 和非 uploads 的请求都返回 index.html
-    app.get(/^(?!\/api|\/uploads)/, (req, res) => {
-        res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+// 根路径返回API信息
+app.get('/', (req, res) => {
+    res.json({
+        success: true,
+        message: 'AI ArtStyle Lab API Server',
+        version: '1.0.0',
+        endpoints: {
+            auth: '/api/login, /api/register',
+            gallery: '/api/gallery, /api/artwork/:id',
+            exhibitions: '/api/exhibitions, /api/exhibition/:id',
+            upload: '/api/upload',
+            ai: '/api/ai/generate'
+        }
     });
-} else {
-    // 开发环境：服务前端源文件
-    app.use('/src', express.static(path.join(__dirname, 'src')));
-    app.use('/public', express.static(path.join(__dirname, 'public')));
-
-    // 服务 HTML 文件
-    app.get('/', (req, res) => {
-        res.sendFile(path.join(__dirname, 'index.html'));
-    });
-    app.get('/create.html', (req, res) => {
-        res.sendFile(path.join(__dirname, 'create.html'));
-    });
-
-    // 开发环境中为非API、非上传路径提供fallback
-    app.get(/^(?!\/api|\/uploads)/, (req, res) => {
-        res.sendFile(path.join(__dirname, 'index.html'));
-    });
-}
+});
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`服务器运行在 http://localhost:${PORT}`);
