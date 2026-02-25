@@ -509,7 +509,7 @@ body {
     cursor: pointer;
     transition: transform 0.3s;
     max-width: 100%;
-    max-height: 80vh;
+    /* 移除 max-height，让图片自适应 */
 }
 
 .result-item:hover {
@@ -521,6 +521,8 @@ body {
     height: auto;
     object-fit: contain;
     display: block;
+    /* 限制图片最大高度，长边不超过容器 */
+    max-height: 70vh;
 }
 
 .result-item.selected {

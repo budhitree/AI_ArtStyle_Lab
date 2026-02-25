@@ -1,4 +1,5 @@
 import './style.css'
+import './responsive.css'
 import './immersive.css'
 import './about.css'
 import './cursor.css'
@@ -9,6 +10,7 @@ import ExhibitionService from './services/exhibitionService.js'
 import { initCursor } from './utils/cursor.js'
 import { Modal } from './utils/modal.js'
 import { validateUserId, validatePassword, getValidationMessage } from './utils/validation.js'
+import { initDeviceDetection } from './device-detect.js'
 
 // Curated Art Data
 const defaultCollection = [];
@@ -1680,4 +1682,6 @@ function initExhibitionManagement() {
   }
 }
 
+// 初始化设备检测
+initDeviceDetection();
 

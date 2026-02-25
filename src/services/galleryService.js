@@ -25,14 +25,14 @@ export const GalleryService = {
     formData.append('prompt', prompt);
     formData.append('desc', desc);
     formData.append('user', user.id);
-    formData.append('addToGallery', addToGallery); // 添加到画廊选项
+    formData.append('addToGallery', addToGallery);
 
     try {
-      const response = await ApiClient.upload('/api/upload', formData);
-      return response.data; // 提取 data 字段
+      // 修复：使用正确的上传路径
+      const response = await ApiClient.upload('/api/gallery/upload', formData);
+      return response.data;
     } catch (error) {
       console.error('Upload artwork error:', error);
-      // 更详细的错误信息
       const errorMessage = error.message || (error.response?.data?.error || '上传失败');
       throw new Error(errorMessage);
     }
@@ -73,7 +73,7 @@ export const GalleryService = {
         ...updates,
         user: user.id
       });
-      return response; // 直接返回响应数据
+      return response.data; // 提取 data 字段，与 uploadArtwork 保持一致
     } catch (error) {
       console.error('Update artwork error:', error);
       // 更详细的错误信息

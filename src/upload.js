@@ -176,7 +176,7 @@ function initUploadPageFunctions() {
                 formData.append('user', uploadData.userId);
                 formData.append('addToGallery', uploadData.addToGallery ? 'true' : 'false');
                 
-                response = await ApiClient.upload('/api/upload', formData);
+                response = await ApiClient.upload('/api/gallery/upload', formData);
             }
 
             if (response.success) {

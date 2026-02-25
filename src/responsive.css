@@ -1,0 +1,415 @@
+/* ====================================
+   iPad Mini & 移动端适配样式
+   针对 8.3 英寸平板优化
+   ==================================== */
+
+/* iPad Mini 竖屏 (768px - 1024px) */
+@media (max-width: 1024px) and (min-width: 768px) {
+    /* 导航栏适配 - 防止文字换行 */
+    .navbar {
+        padding: 0.8rem 1rem;
+        gap: 0.5rem;
+    }
+
+    .logo {
+        gap: 0.5rem;
+    }
+
+    .logo-main {
+        font-size: 1.6rem;
+    }
+
+    .logo-chinese {
+        font-size: 0.9rem;
+    }
+
+    .logo-english {
+        font-size: 0.7rem;
+    }
+
+    /* 导航链接调整 - 缩小间距 */
+    .nav-links {
+        gap: 0.3rem;
+    }
+
+    .nav-item {
+        font-size: 0.85rem;
+        padding: 0.45rem 0.8rem;
+        white-space: nowrap;
+    }
+
+    .nav-create-btn,
+    .auth-btn {
+        font-size: 0.8rem;
+        padding: 0.45rem 0.7rem;
+        white-space: nowrap;
+    }
+
+    /* 按钮触摸友好 */
+    button,
+    .btn,
+    .cta-button {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* 表单输入优化 */
+    input,
+    textarea,
+    select {
+        font-size: 16px;
+        padding: 0.75rem;
+    }
+
+    /* 沉浸模式按钮 */
+    #start-immersive {
+        font-size: 0.85rem;
+        padding: 0.5rem 1rem;
+    }
+
+    /* 画廊网格调整 */
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    /* 作品卡片优化 */
+    .artwork-card {
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .artwork-card img {
+        aspect-ratio: 4/3;
+        object-fit: cover;
+    }
+
+    /* 按钮触摸友好 */
+    button,
+    .btn,
+    .cta-button {
+        min-height: 44px; /* iOS 推荐触摸区域 */
+        min-width: 44px;
+    }
+
+    /* 表单输入优化 */
+    input,
+    textarea,
+    select {
+        font-size: 16px; /* 防止 iOS 自动缩放 */
+        padding: 0.75rem;
+    }
+
+    /* 沉浸模式按钮 */
+    #start-immersive {
+        font-size: 0.85rem;
+        padding: 0.5rem 1rem;
+    }
+}
+
+/* iPad Mini 横屏 */
+@media (max-height: 768px) and (min-width: 1024px) {
+    .navbar {
+        padding: 0.75rem 2rem;
+    }
+
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+}
+
+/* 小型平板和手机 (< 768px) */
+@media (max-width: 767px) {
+    /* 导航栏 */
+    .navbar {
+        padding: 0.75rem 1rem;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .logo {
+        margin-bottom: 0.5rem;
+    }
+
+    .logo-main {
+        font-size: 1.5rem;
+    }
+
+    .logo-right {
+        display: none; /* 隐藏副标题节省空间 */
+    }
+
+    .nav-links {
+        width: 100%;
+        display: flex;
+        justify-content: space-around;
+        gap: 0.25rem;
+        flex-wrap: wrap;
+    }
+
+    .nav-item {
+        font-size: 0.8rem;
+        padding: 0.4rem 0.6rem;
+    }
+
+    .nav-create-btn,
+    #nav-upload-btn,
+    #nav-user-btn {
+        font-size: 0.75rem;
+        padding: 0.4rem 0.8rem;
+    }
+
+    /* 画廊网格 */
+    .gallery-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+        padding: 0.5rem;
+    }
+
+    .artwork-card {
+        border-radius: 6px;
+    }
+
+    /* 隐藏部分信息 */
+    .artwork-info {
+        padding: 0.5rem;
+    }
+
+    .artwork-title {
+        font-size: 0.85rem;
+    }
+
+    .artwork-artist {
+        font-size: 0.75rem;
+        display: none;
+    }
+
+    /* 搜索框优化 */
+    .search-box {
+        width: 100%;
+        max-width: none;
+    }
+
+    #search-input {
+        width: 100%;
+        font-size: 16px;
+    }
+
+    /* 画廊控制栏 */
+    .gallery-controls {
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1rem;
+    }
+
+    /* 按钮堆叠 */
+    .action-bar {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .action-bar button {
+        width: 100%;
+    }
+}
+
+/* ====================================
+   AI 创作页面 iPad 适配
+   ==================================== */
+
+@media (max-width: 1024px) {
+    .create-container {
+        padding-top: 60px;
+    }
+
+    .split-layout {
+        flex-direction: column;
+    }
+
+    .workbench-panel {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        max-height: none;
+        overflow-y: auto;
+    }
+
+    .preview-panel {
+        min-height: 50vh;
+    }
+
+    .prompt-builder .nexus-input,
+    .prompt-builder textarea {
+        font-size: 16px;
+    }
+}
+
+/* ====================================
+   上传页面 iPad 适配
+   ==================================== */
+
+@media (max-width: 1024px) {
+    .upload-container {
+        max-width: 90%;
+        margin: 2rem auto;
+    }
+
+    .upload-preview {
+        max-height: 40vh;
+    }
+}
+
+/* ====================================
+   个人中心 iPad 适配
+   ==================================== */
+
+@media (max-width: 1024px) {
+    .my-works-tabs {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .tab-btn {
+        font-size: 0.85rem;
+        padding: 0.5rem 1rem;
+    }
+
+    .my-works-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1rem;
+    }
+}
+
+/* ====================================
+   触摸设备优化
+   ==================================== */
+
+/* 触摸设备隐藏自定义光标 */
+@media (hover: none) and (pointer: coarse) {
+    .cursor-dot,
+    .cursor-outline {
+        display: none;
+    }
+}
+
+/* 移除悬停效果（触摸设备不需要） */
+@media (hover: none) {
+    .artwork-card:hover,
+    .nav-item:hover,
+    button:hover {
+        transform: none;
+    }
+
+    /* 点击反馈 */
+    .artwork-card:active,
+    button:active {
+        transform: scale(0.98);
+        opacity: 0.9;
+    }
+}
+
+/* ====================================
+   PC 端优化 (教师用)
+   ==================================== */
+
+@media (min-width: 1400px) {
+    /* 更大的画廊网格 */
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        max-width: var(--container-width);
+        margin: 0 auto;
+    }
+
+    /* 导航栏更宽 */
+    .navbar {
+        padding: 1.5rem 4rem;
+    }
+
+    /* 更大的创作区域 */
+    .workbench-panel {
+        width: 500px;
+    }
+
+    .preview-panel {
+        max-width: 1400px;
+    }
+
+    /* 展览页面优化 */
+    .exhibitions-grid {
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    }
+}
+
+/* ====================================
+   超大屏幕优化 (2K/4K 显示器)
+   ==================================== */
+
+@media (min-width: 2560px) {
+    html {
+        font-size: 18px; /* 放大字体 */
+    }
+
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+    }
+
+    .container {
+        max-width: 2000px;
+    }
+}
+
+/* ====================================
+   横屏/竖屏检测
+   ==================================== */
+
+/* 竖屏提示（可选） */
+@media (orientation: portrait) and (max-width: 768px) {
+    .landscape-hint {
+        display: block;
+        text-align: center;
+        padding: 2rem;
+        background: var(--bg-secondary);
+        margin: 1rem;
+        border-radius: 8px;
+    }
+}
+
+/* ====================================
+   辅助功能优化
+   ==================================== */
+
+/* 增大点击区域 */
+@media (pointer: coarse) {
+    .nav-item,
+    .btn,
+    button,
+    .artwork-card {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* 增加间距防止误触 */
+    .nav-links {
+        gap: 0.75rem;
+    }
+}
+
+/* ====================================
+   性能优化
+   ==================================== */
+
+/* 减少动画（省电模式） */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    html {
+        scroll-behavior: auto;
+    }
+}

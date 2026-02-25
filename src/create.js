@@ -86,10 +86,10 @@ function initCreatePageFunctions() {
                 console.log('Loaded works:', response.data);
                 historyImages = response.data.map(work => ({
                     id: work.id,
-                    url: work.url,
+                    url: work.image,  // 修复：API 返回的是 image 不是 url
                     title: work.title,
                     prompt: work.prompt,
-                    createdAt: work.createdAt
+                    createdAt: work.uploadedAt  // 修复：API 返回的是 uploadedAt
                 }));
                 // 保存到本地存储
                 localStorage.setItem(historyKey, JSON.stringify(historyImages));
