@@ -8,9 +8,12 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "node server.js",
+    "server": "node server.js",
+    "dev:all": "concurrently \"npm run server\" \"npm run dev\"",
     "prod": "npm run build && npm start"
   },
   "devDependencies": {
+    "concurrently": "^9.1.2",
     "vite": "^7.2.4"
   },
   "dependencies": {

@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  ai-art-lab:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - VOLC_API_KEY=${VOLC_API_KEY}
+      - VOLC_SEEDREAM_ENDPOINT=${VOLC_SEEDREAM_ENDPOINT}
+      - PORT=3000
+    volumes:
+      # 持久化上传的图片
+      - ./public/uploads:/app/public/uploads
+      # 持久化数据库
+      - ./server/data:/app/server/data
+    restart: unless-stopped
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

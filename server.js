@@ -39,6 +39,7 @@ app.use('/api/user', userRouter);         // /api/user/:userId
 app.use('/api/gallery', artworkRouter);   // /api/gallery, /api/gallery/:id, /api/gallery/upload
 app.use('/api/artwork', artworkRouter);   // 兼容旧版前端：/api/artwork/:id
 app.use('/api/exhibitions', exhibitionRouter);  // /api/exhibitions, /api/exhibitions/:id
+app.use('/api/exhibition', exhibitionRouter);   // 兼容前端：/api/exhibition, /api/exhibition/:id
 app.use('/api/ai', aiRouter);             // /api/ai/generate, /api/ai/save-to-gallery
 
 // 兼容旧版前端：/api/works?userId=xxx
