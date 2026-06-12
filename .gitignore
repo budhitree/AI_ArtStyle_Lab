@@ -1,42 +1,27 @@
-# 依赖
-node_modules/
-package-lock.json
-
-# 生产构建
-dist/
-
-# 环境变量
-.env
-
-# SQLite 数据库（正在使用）
-server/data/*.db
-server/data/*.db-shm
-server/data/*.db-wal
-
-# 上传文件
-public/uploads/*
-!public/uploads/.gitkeep
-
-# 日志
-logs/
-*.log
-npm-debug.log*
-
-# 系统文件
+.nuxt
+.output
+output
+.data
+.nitro
+.cache
 .DS_Store
 Thumbs.db
 desktop.ini
+%SystemDrive%/
+legacy/**/%SystemDrive%/
+*.log
+dev_output.txt
+*.db-shm
+*.db-wal
 
-# IDE 配置
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
+node_modules
+dist
 
-# 备份文件
-*.backup
-*.bak
+.env
+.env.*
+!.env.example
 
-# 截图和临时文件
-ScreenShot*.png
+coverage
+
+legacy/vite-express-demo/node_modules
+legacy/vite-express-demo/dist

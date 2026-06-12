@@ -1,33 +1,32 @@
 {
-  "name": "nexus-art-gallery",
+  "name": "ai-artstyle-lab",
   "private": true,
-  "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "start": "node server.js",
-    "server": "node server.js",
-    "dev:all": "concurrently \"npm run server\" \"npm run dev\"",
-    "prod": "npm run build && npm start"
-  },
-  "devDependencies": {
-    "concurrently": "^9.1.2",
-    "vite": "^7.2.4"
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck",
+    "migrate:legacy": "node scripts/migrate-legacy.mjs"
   },
   "dependencies": {
-    "bcrypt": "^6.0.0",
+    "@pinia/nuxt": "^0.11.3",
+    "@supabase/supabase-js": "^2.100.1",
+    "@vueuse/core": "^13.9.0",
+    "nuxt": "^3.21.2",
+    "pinia": "^3.0.3",
+    "vue": "^3.5.22",
+    "vue-router": "^4.6.0",
+    "zod": "^4.1.11"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "autoprefixer": "^10.4.21",
     "better-sqlite3": "^12.6.2",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
-    "express": "^5.2.1",
-    "fs-extra": "^11.3.3",
-    "lowdb": "^7.0.1",
-    "multer": "^2.0.2",
-    "nedb": "^1.8.0",
-    "node-fetch": "^3.3.2",
-    "sql.js": "^1.14.0",
-    "sqlite": "^5.1.1"
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17",
+    "typescript": "^5.9.3",
+    "vue-tsc": "^3.1.1"
   }
 }

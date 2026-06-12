@@ -1,535 +1,127 @@
 # AI ArtStyle Lab
 
-AI ArtStyle Lab 是一个功能完整的AI艺术创作与管理平台，专为艺术爱好者和学生设计。系统集成了火山引擎 Seedream 4.5 AI 图像生成服务，支持多维度提示词构建、作品上传管理、个人画廊等功能。
+AI ArtStyle Lab 已从旧的 Vite + Express demo 重构为新的 Nuxt 应用骨架，目标是服务校内师生的 AI 创作、作品管理和主题展览流程。
 
-## 目录
+## 当前架构
 
-- [功能特性](#功能特性)
-- [技术栈](#技术栈)
-- [项目结构](#项目结构)
-- [快速开始](#快速开始)
-- [API 文档](#api-文档)
-- [用户权限](#用户权限)
-- [部署指南](#部署指南)
-- [开发指南](#开发指南)
-- [常见问题](#常见问题)
+- Nuxt 3
+- Vue 3 + TypeScript
+- Pinia
+- Tailwind CSS
+- Supabase Auth / Postgres / Storage
+- Volcano Ark / Seedream 由 Nuxt server routes 代理
 
-## 功能特性
+项目同时支持两种运行模式：
 
-### 核心功能
+- `Demo 回退模式`
+  - 未配置 Supabase / 火山引擎时启用
+  - 仍可浏览页面、登录 demo 角色、体验上传/创作/策展流程
+- `Supabase 正式模式`
+  - 配置环境变量后启用
+  - 作品、展览、上传文件与鉴权都走真实云端能力
 
-| 功能 | 描述 |
-|------|------|
-| 🖼️ **作品画廊** | 浏览所有上传的艺术作品，支持搜索和筛选 |
-| 🤖 **AI 艺术创作** | 四维度提示词构建（主体、背景、风格、补充），一键生成 AI 艺术 |
-| 📤 **作品上传** | 支持本地上传和 AI 生成作品保存到图库 |
-| 👤 **个人中心** | 管理个人信息、查看和编辑自己的作品 |
-| 🎭 **展览系统** | 创建和管理主题展览，支持多班级联合展览 |
-| 👨‍🏫 **班级管理** | 教师可创建班级、管理学生 |
-| 🔐 **用户认证** | 学生/教师/管理员三级权限系统，支持Enter键登录 |
-| 🌟 **沉浸模式** | 全屏幻灯片式作品浏览体验 |
-
-### 特色功能
-
-- **智能提示词建议** - 内置常用艺术风格和元素预设（中文）
-- **多画幅比例支持** - 1:1 正方形、16:9 横版、9:16 竖版
-- **作品状态管理** - 作品可选择是否展示在公共画廊
-- **历史记录管理** - 本地存储用户专属的历史作品，只显示当前用户的作品
-- **拖拽上传** - 支持拖拽文件上传
-- **响应式设计** - 适配各种屏幕尺寸
-- **图片下载功能** - 支持将作品下载到本地，文件名自动命名为提示词+时间戳
-- **作品分类** - 个人作品分为全部作品、已在画廊展示、隐藏作品三类
-
-## 技术栈
-
-### 后端
-- **运行时**: Node.js (ES Modules) 18+
-- **框架**: Express.js 5.x
-- **文件上传**: Multer 2.x
-- **数据库**: SQLite (better-sqlite3)
-- **跨域支持**: CORS
-
-### 前端
-- **构建工具**: Vite 7.x
-- **JavaScript**: ES6+ (原生，无框架)
-- **样式**: CSS3 (原生)
-- **模块化**: 服务层架构 (Services)
-
-### AI 服务
-- **提供商**: 火山引擎 (Volcengine)
-- **模型**: Seedream 4.5
-- **功能**: 文生图、图生图
-
-## 项目结构
-
-```
-AI_ArtStyle_Lab/
-├── server.js                 # Express 服务器主文件（路由组装）
-├── index.html                # 主页（画廊、个人中心、展览）
-├── create.html               # AI 创作页面
-├── upload.html               # 作品上传页面
-├── package.json              # 项目配置和依赖
-├── .env                      # 环境变量配置
-├── start.bat                 # 一键启动脚本（Windows）
-│
-├── server/                   # 后端模块
-│   ├── data/
-│   │   └── artstyle.db      # SQLite 数据库（运行时生成）
-│   ├── routes/
-│   │   ├── auth.js          # 认证路由（登录/注册）
-│   │   ├── user.js          # 用户路由
-│   │   ├── artwork.js       # 作品路由
-│   │   ├── exhibition.js    # 展览路由
-│   │   └── ai.js            # AI 生成路由
-│   └── utils/
-│       ├── db.js            # 数据库工具模块
-│       └── init-db.js       # 数据库初始化脚本
-│
-├── src/                      # 前端源码
-│   ├── main.js              # 主应用逻辑
-│   ├── create.js            # AI 创作页面逻辑
-│   ├── upload.js            # 上传页面逻辑
-│   ├── device-detect.js     # 设备检测模块
-│   ├── responsive.css       # 响应式适配样式
-│   │
-│   ├── services/            # 服务模块
-│   │   ├── authService.js   # 用户认证服务
-│   │   ├── galleryService.js# 画廊管理服务
-│   │   ├── aiService.js     # AI 图像生成服务
-│   │   ├── exhibitionService.js # 展览服务
-│   │   └── studentService.js# 学生管理服务
-│   │
-│   └── utils/               # 工具模块
-│       ├── apiClient.js     # API 请求客户端
-│       ├── modal.js         # 模态框工具
-│       ├── progressBar.js   # 进度条工具
-│       ├── validation.js    # 输入验证工具
-│       └── cursor.js        # 光标效果工具
-│
-├── public/                  # 静态资源
-│   ├── uploads/             # 用户上传的作品图片
-│   └── images/              # 默认图片资源
-│
-└── dist/                    # 构建输出目录
-```
-
-## 快速开始
-
-### 环境要求
-
-- Node.js 18+
-- npm 或 yarn
-
-### 安装步骤
+## 本地开发
 
 ```bash
-# 1. 克隆或下载项目
-cd AI_ArtStyle_Lab
-
-# 2. 安装依赖
 npm install
-
-# 3. 配置环境变量
-# 复制环境变量示例文件并编辑
-cp .env.example .env
-```
-
-### 环境变量配置
-
-在 `.env` 文件中配置以下变量：
-
-```env
-# 火山引擎 AI 服务配置
-VOLC_API_KEY=你的 API 密钥
-VOLC_SEEDREAM_ENDPOINT=你的端点 ID
-
-# 服务器配置
-PORT=3000
-```
-
-### 启动项目
-
-#### 开发模式
-
-项目使用双服务器架构：
-
-```bash
-# 1. 启动前端开发服务器（Vite，带热重载）
 npm run dev
-# 访问：http://localhost:5173
-# 功能：前端开发、热更新、API 代理
-
-# 2. 启动后端 API 服务器（Express）
-npm start
-# 访问：http://localhost:3000 (API服务信息)
-# 功能：提供 API 服务、处理文件上传
 ```
 
-**开发建议**：
-- 前端开发使用 Vite 服务器（5173 端口）
-- 后端 API 服务自动通过 Vite 代理转发
-- 无需手动访问 3000 端口，除非需要直接测试 API
+默认地址：
 
-#### 生产模式
+- App: `http://localhost:3000`
+
+## 环境变量
+
+复制 `.env.example` 为 `.env`，然后填入：
 
 ```bash
-# 1. 构建前端代码
-npm run build
+NUXT_PUBLIC_SUPABASE_URL=
+NUXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_STORAGE_BUCKET=artworks
+SUPABASE_EXHIBITION_BUCKET=exhibitions
 
-# 2. 启动生产服务器
-npm start
-# 访问：http://localhost:3000
-
-# 一键生产（构建 + 启动）
-npm run prod
+VOLC_API_KEY=
+VOLC_SEEDREAM_ENDPOINT=
+VOLC_API_BASE=https://ark.cn-beijing.volces.com/api/v3/images/generations
 ```
 
-### 测试账号
+如果这些值暂时留空，项目会自动降级到 demo 回退模式。
 
-系统内置测试账号：
-- **学生账号**: 20250101 / 123456
-- **教师账号**: 20250001 / 123456
+## Supabase 初始化
 
-## 功能使用指南
+1. 创建 Supabase 项目
+2. 在 SQL Editor 中执行：
 
-### 1. 用户认证
+`supabase/migrations/001_init.sql`
 
-- **登录**: 输入用户ID和密码，点击登录按钮或按Enter键登录
-- **注册**: 目前系统使用预设账号，如需添加新用户请修改 `db.json` 文件
+3. 创建公开 bucket：
 
-### 2. AI 艺术创作
+- `artworks`
+- `exhibitions`
 
-1. **进入创作页面**: 点击导航栏中的 "AI 创作" 按钮
-2. **构建提示词**:
-   - **主体**: 输入画面的主要内容（如：猫、人物、风景等）
-   - **背景**: 输入画面的背景环境（如：日落沙滩、森林、城市等）
-   - **风格**: 选择艺术风格（如：油画、水彩、卡通等）
-   - **补充**: 添加额外的描述信息
-3. **选择比例**: 选择生成图片的宽高比例（1:1、16:9、9:16）
-4. **生成图片**: 点击 "生成图片" 按钮，系统会调用AI服务生成图片
-5. **操作生成的图片**:
-   - **重试**: 使用相同的提示词重新生成图片
-   - **下载**: 将生成的图片下载到本地，文件名为提示词+时间戳
-   - **上传到作品库**: 将生成的图片保存到个人作品库
+4. 打开 Auth 的 Email provider
+5. 将项目 URL 和 anon/service role key 写入 `.env`
 
-### 3. 作品上传
+## 旧数据迁移
 
-1. **进入上传页面**: 点击导航栏中的 "上传作品" 按钮
-2. **选择文件**: 点击 "选择文件" 按钮或拖拽文件到上传区域
-3. **填写信息**:
-   - **作品名称**: 输入作品的名称
-   - **作品介绍**: 输入作品的描述信息
-   - **作品类型**: 选择作品的类型
-   - **是否在画廊展示**: 选择是否将作品展示在公共画廊
-4. **提交**: 点击 "提交" 按钮上传作品
+迁移脚本会优先读取以下任一路径中的旧 SQLite 数据库：
 
-### 4. 个人作品管理
+- `server/data/artstyle.db`
+- `legacy/vite-express-demo/server/data/artstyle.db`
+- `legacy/vite-express-demo/data-source/data/artstyle.db`
 
-1. **进入个人中心**: 点击导航栏中的 "我的作品" 按钮
-2. **浏览作品**:
-   - **全部作品**: 查看所有个人作品
-   - **已在画廊展示**: 查看已公开的作品
-   - **隐藏作品**: 查看未公开的作品
-3. **作品操作**: 对作品进行编辑、删除等操作
-
-### 5. 历史记录管理
-
-- **AI 创作历史**: 在创作页面底部查看历史生成的作品
-- **历史记录隔离**: 系统只显示当前登录用户的历史作品
-- **历史作品操作**: 点击历史作品可重新进入创作区域进行编辑和操作
-
-## API 文档
-
-### 用户认证 API
-
-| 端点 | 方法 | 描述 |
-|------|------|------|
-| `/api/auth/login` | POST | 用户登录 |
-| `/api/auth/register` | POST | 用户注册 |
-| `/api/user/:userId` | GET | 获取用户信息 |
-| `/api/user/:userId` | PUT | 更新用户信息 |
-
-### 作品管理 API
-
-| 端点 | 方法 | 描述 |
-|------|------|------|
-| `/api/gallery` | GET | 获取所有作品 |
-| `/api/works` | GET | 获取指定用户的作品（需传入userId参数） |
-| `/api/upload` | POST | 上传作品 |
-| `/api/artwork/:id` | GET | 获取单个作品 |
-| `/api/artwork/:id` | PUT | 更新作品 |
-| `/api/artwork/:id` | DELETE | 删除作品 |
-
-### AI 生成 API
-
-| 端点 | 方法 | 描述 |
-|------|------|------|
-| `/api/ai/generate` | POST | 生成 AI 图像 |
-| `/api/ai/save-to-gallery` | POST | 保存 AI 作品到图库 |
-
-### 展览管理 API
-
-| 端点 | 方法 | 描述 |
-|------|------|------|
-| `/api/exhibitions` | GET | 获取所有展览 |
-| `/api/exhibition/:id` | GET | 获取单个展览 |
-| `/api/exhibition` | POST | 创建展览 |
-| `/api/exhibition/:id` | PUT | 更新展览 |
-| `/api/exhibition/:id` | DELETE | 删除展览 |
-| `/api/exhibition/:id/publish` | POST | 发布展览 |
-| `/api/exhibition/:id/artwork/:artworkId` | POST | 添加作品到展览 |
-| `/api/exhibition/:id/artwork/:artworkId` | DELETE | 从展览移除作品 |
-
-### 班级管理 API
-
-| 端点 | 方法 | 描述 |
-|------|------|------|
-| `/api/classes` | GET | 获取班级列表 |
-| `/api/class` | POST | 创建班级 |
-| `/api/class/:id` | PUT | 更新班级 |
-| `/api/class/:id` | DELETE | 删除班级 |
-| `/api/class/:id/students` | POST | 添加学生到班级 |
-| `/api/class/:id/students/:studentId` | DELETE | 从班级移除学生 |
-
-### 请求/响应格式
-
-**请求示例（登录）**:
-```json
-{
-  "userId": "20250101",
-  "password": "123456"
-}
-```
-
-**响应示例**:
-```json
-{
-  "success": true,
-  "data": {
-    "id": "20250101",
-    "name": "测试学生",
-    "userType": "student",
-    "joined": "2025-01-01T00:00:00.000Z",
-    "uploads": []
-  }
-}
-```
-
-## 用户权限
-
-系统分为三种用户角色：
-
-### 学生 (student)
-- 注册和登录
-- 浏览画廊
-- 上传作品
-- AI 艺术创作
-- 管理自己的作品
-- 查看个人中心
-
-### 教师 (teacher)
-- 学生所有权限
-- 创建和管理班级
-- 管理学生信息
-- 创建和管理展览
-- 向展览添加/移除作品
-
-### 管理员 (admin)
-- 教师所有权限
-- 管理所有用户
-- 删除学生和班级
-- 管理所有展览
-- 无权限限制
-
-## 技术实现细节
-
-### 1. 历史记录隔离
-
-系统通过以下方式实现历史记录隔离：
-
-- **前端**: 使用用户ID作为本地存储的键名前缀，确保每个用户只访问自己的历史记录
-- **后端**: 实现 `/api/works` 端点，根据用户ID过滤作品
-
-```javascript
-// 前端示例 (create.js)
-const historyKey = `history_${currentUser.id}`;
-localStorage.setItem(historyKey, JSON.stringify(history));
-
-// 后端示例 (server.js)
-app.get('/api/works', (req, res) => {
-  const { userId } = req.query;
-  const userWorks = works.filter(work => work.userId === userId);
-  res.json({ success: true, data: userWorks });
-});
-```
-
-### 2. 图片下载功能
-
-系统使用Canvas实现图片下载，解决CORS问题：
-
-```javascript
-function downloadImage(image, prompt) {
-  const canvas = document.createElement('canvas');
-  canvas.width = image.width;
-  canvas.height = image.height;
-  const ctx = canvas.getContext('2d');
-  ctx.drawImage(image, 0, 0);
-  
-  const timestamp = new Date().toISOString().replace(/[-:\/T:.Z]/g, '').slice(0, 14);
-  const safePrompt = prompt.length > 10 ? prompt.substring(0, 10) : prompt;
-  const filename = `${safePrompt}_${timestamp}.png`;
-  
-  canvas.toBlob((blob) => {
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  });
-}
-```
-
-### 3. Enter键登录功能
-
-系统为登录表单添加了键盘事件监听器，支持Enter键登录：
-
-```javascript
-// 为用户名和密码输入框添加键盘事件监听器
-usernameInput.addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') {
-    passwordInput.focus();
-  }
-});
-
-passwordInput.addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') {
-    login();
-  }
-});
-```
-
-### 4. 作品分类管理
-
-个人作品页面实现了三个分类标签：
-
-- **全部作品**: 显示用户的所有作品
-- **已在画廊展示**: 只显示 `isPublic: true` 的作品
-- **隐藏作品**: 只显示 `isPublic: false` 的作品
-
-## 部署指南
-
-### 本地部署
+只导出、不写远端：
 
 ```bash
-# 安装依赖
-npm install
-
-# 配置 .env 文件
-
-# 构建并启动
-npm run prod
+npm run migrate:legacy
 ```
 
-### Docker 部署
+输出目录：
 
-```dockerfile
-FROM node:20-alpine
+- `migration-output/legacy-export.json`
+- `migration-output/asset-manifest.json`
 
-WORKDIR /app
+写入 Supabase（best effort）：
 
-COPY package*.json ./
-RUN npm install --production
-
-COPY . .
-
-EXPOSE 3000
-
-CMD ["npm", "start"]
+```bash
+npm run migrate:legacy -- --write
 ```
 
-### Sealos 部署
+说明：
 
-1. 登录 [Sealos](https://cloud.sealos.io)
-2. 创建新应用
-3. 上传项目代码
-4. 配置环境变量
-5. 部署应用
+- 该模式会为旧用户创建临时 Supabase Auth 账号
+- 默认密码为 `LegacyTemp!123`
+- 迁移后应立即要求用户重置密码
 
-## 开发指南
+## 目录说明
 
-### 代码结构说明
+- `app/` Nuxt app 入口与全局样式
+- `pages/` 页面路由
+- `components/` 复用组件
+- `stores/` Pinia 状态
+- `server/api/` 服务端 API
+- `server/utils/` 仓储、鉴权、存储与 AI 代理
+- `shared/` 前后端共享类型和 demo 数据
+- `supabase/` 数据库 schema
+- `legacy/` 旧 Vite/Express 实现归档
 
-前端采用服务层架构，将业务逻辑分离到独立的服务模块：
+## 当前已实现
 
-```javascript
-// 示例：使用 galleryService
-import galleryService from './services/galleryService.js';
+- 公共画廊首页
+- 登录 / 注册页
+- AI 创作页
+- 上传作品页
+- 我的作品页
+- 展览列表页
+- 展览详情 / 管理页
+- Demo 模式数据回退
+- Supabase-ready 的 API / schema / migration 脚本
 
-const artworks = await galleryService.getAllArtworks();
-const userWorks = await galleryService.getUserWorks(currentUser.id);
-```
+## 待接入或需在真实环境验证
 
-### API 调用
-
-使用统一的 apiClient 进行 API 调用：
-
-```javascript
-import apiClient from './utils/apiClient.js';
-
-// GET 请求
-const response = await apiClient.get('/api/works', { userId: currentUser.id });
-
-// POST 请求
-const response = await apiClient.post('/api/upload', formData);
-```
-
-### 样式开发
-
-项目使用原生 CSS，采用 CSS 变量定义设计系统：
-
-```css
-:root {
-  --primary-color: #6366f1;
-  --secondary-color: #8b5cf6;
-  --background: #0f0f0f;
-  --text-color: #ffffff;
-  /* ... */
-}
-```
-
-## 常见问题
-
-### 1. AI 生成功能不能用？
-
-检查 `.env` 文件中是否正确配置了 `VOLC_API_KEY` 和 `VOLC_SEEDREAM_ENDPOINT`。
-
-### 2. 上传的图片无法显示？
-
-检查 `public/uploads` 目录是否有写入权限。
-
-### 3. 端口被占用？
-
-修改 `.env` 文件中的 `PORT` 变量或设置 `PORT` 环境变量。
-
-### 4. 历史记录显示所有用户的作品？
-
-系统已实现历史记录隔离，只显示当前登录用户的作品。如果仍有问题，请检查浏览器本地存储中的历史记录键名是否包含用户ID。
-
-### 5. 下载的文件名乱码？
-
-系统使用Canvas实现图片下载，文件名会自动转换为安全的格式，避免乱码问题。
-
-## 许可证
-
-MIT License
-
-## 贡献指南
-
-欢迎提交 Issue 和 Pull Request！
-
----
-
-**AI ArtStyle Lab** - 让 AI 与艺术完美融合
+- 真实 Supabase Auth 邮件流
+- 真正的生产 bucket 权限策略
+- 火山引擎真实图片生成质量与额度控制
+- 更细的策展排序、沉浸模式动画、移动端打磨

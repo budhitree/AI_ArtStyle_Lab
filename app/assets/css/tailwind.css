@@ -1,0 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Manrope:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    background: #f3eee4;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-canvas font-body text-ink antialiased;
+    background-image:
+      linear-gradient(rgba(20, 18, 16, 0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(20, 18, 16, 0.025) 1px, transparent 1px),
+      radial-gradient(circle at 12% 4%, rgba(154, 61, 39, 0.13), transparent 25rem),
+      radial-gradient(circle at 88% 8%, rgba(43, 75, 63, 0.12), transparent 22rem),
+      linear-gradient(180deg, #fbf8f1 0%, #f3eee4 42%, #e9e0d1 100%);
+    background-size: 34px 34px, 34px 34px, auto, auto, auto;
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(20, 18, 16, 0.25) transparent;
+  }
+}
+
+@layer components {
+  .shell {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .panel {
+    @apply rounded-[1.35rem] border border-ink/10 bg-[rgba(255,252,244,0.86)] shadow-card backdrop-blur-xl;
+  }
+
+  .muted-panel {
+    @apply rounded-[1.1rem] border border-ink/10 bg-[rgba(255,252,244,0.58)] shadow-soft backdrop-blur-xl;
+  }
+
+  .section-kicker {
+    @apply text-[0.68rem] font-extrabold uppercase tracking-[0.28em] text-ember/90;
+  }
+
+  .display-title {
+    @apply font-display text-4xl leading-[0.96] text-ink md:text-6xl;
+  }
+
+  .field-label {
+    @apply text-[0.68rem] font-extrabold uppercase tracking-[0.22em] text-ink/60;
+  }
+
+  .field-input {
+    @apply w-full rounded-xl border border-ink/10 bg-white/80 px-4 py-3 text-sm text-ink shadow-inner outline-none transition placeholder:text-ink/40 focus:border-ember/70 focus:bg-white focus:ring-4 focus:ring-ember/10;
+  }
+
+  .button-primary {
+    @apply inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 py-3 text-sm font-extrabold text-white shadow-soft transition hover:-translate-y-0.5 hover:bg-ember focus:outline-none focus:ring-4 focus:ring-ember/20 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+  }
+
+  .button-secondary {
+    @apply inline-flex min-h-11 items-center justify-center rounded-full border border-ink/20 bg-white/70 px-5 py-3 text-sm font-extrabold text-ink transition hover:-translate-y-0.5 hover:border-ink/30 hover:bg-white focus:outline-none focus:ring-4 focus:ring-ink/10 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+  }
+
+  .button-danger {
+    @apply inline-flex min-h-11 items-center justify-center rounded-full border border-ember/25 bg-ember/10 px-5 py-3 text-sm font-extrabold text-ember transition hover:-translate-y-0.5 hover:bg-ember hover:text-white focus:outline-none focus:ring-4 focus:ring-ember/20;
+  }
+
+  .art-frame {
+    @apply overflow-hidden rounded-[1rem] border border-ink/10 bg-mist shadow-soft;
+  }
+
+  .status-pill {
+    @apply inline-flex items-center rounded-full border border-ink/10 bg-white/70 px-3 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.18em] text-ink/60;
+  }
+
+  .studio-grid {
+    background-image:
+      linear-gradient(rgba(20, 18, 16, 0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(20, 18, 16, 0.05) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+}
