@@ -8,6 +8,7 @@
 .cache
 .data
 .nitro
+migration-output/
 
 legacy/vite-express-demo/public/uploads/
 legacy/vite-express-demo/server/data/
