@@ -1,5 +1,6 @@
 .nuxt
 .output
+.vercel
 output
 .data
 .nitro
@@ -25,3 +26,5 @@ coverage
 
 legacy/vite-express-demo/node_modules
 legacy/vite-express-demo/dist
+
+.vercel

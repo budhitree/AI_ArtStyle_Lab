@@ -1,4 +1,5 @@
 import { requireProfile } from '../../utils/auth'
+import { createImageThumbnail } from '../../utils/image'
 import { createArtworkEntry } from '../../utils/repository'
 import { storeBinaryAsset } from '../../utils/storage'
 
@@ -31,10 +32,16 @@ export default defineEventHandler(async (event) => {
   const prompt = parts?.find((part) => part.name === 'prompt')?.data?.toString() || ''
   const visibility = (parts?.find((part) => part.name === 'visibility')?.data?.toString() || 'public') as 'public' | 'private'
 
-  const stored = await storeBinaryAsset('artworks', Buffer.from(image.data), image.filename, image.type)
+  const imageBuffer = Buffer.from(image.data)
+  const stored = await storeBinaryAsset('artworks', imageBuffer, image.filename, image.type)
+  const generatedThumbnail = thumbnail?.data
+    ? null
+    : await createImageThumbnail(imageBuffer, image.filename)
   const storedThumbnail = thumbnail?.data
     ? await storeBinaryAsset('artworks', Buffer.from(thumbnail.data), thumbnail.filename || 'thumbnail.webp', thumbnail.type || 'image/webp')
-    : null
+    : generatedThumbnail
+      ? await storeBinaryAsset('artworks', generatedThumbnail.buffer, generatedThumbnail.filename, generatedThumbnail.contentType)
+      : null
 
   return await createArtworkEntry({
     title,

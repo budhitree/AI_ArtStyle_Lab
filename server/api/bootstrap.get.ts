@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
 
   return {
     mode: isSupabaseConfigured() ? 'supabase' : 'demo',
-    artworks: await listArtworks('public'),
+    artworks: await listArtworks('public', null, { limit: 24 }),
     exhibitions: await listExhibitions('public', me),
     me
   }

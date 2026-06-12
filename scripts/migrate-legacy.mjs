@@ -1,8 +1,9 @@
 import Database from 'better-sqlite3'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
+import { extname, join, resolve } from 'node:path'
 import { createClient } from '@supabase/supabase-js'
+import sharp from 'sharp'
 
 const candidates = [
   resolve('server/data/artstyle.db'),
@@ -14,6 +15,31 @@ const args = new Set(process.argv.slice(2))
 const writeRemote = args.has('--write')
 const outDir = resolve('migration-output')
 const sourcePath = candidates.find((item) => existsSync(item))
+
+function contentTypeFromPath(filePath) {
+  const ext = extname(filePath).toLowerCase()
+  if (ext === '.png') return 'image/png'
+  if (ext === '.webp') return 'image/webp'
+  if (ext === '.gif') return 'image/gif'
+  return 'image/jpeg'
+}
+
+async function createThumbnail(buffer) {
+  try {
+    return await sharp(buffer, { failOn: 'none' })
+      .rotate()
+      .resize({
+        width: 720,
+        height: 720,
+        fit: 'inside',
+        withoutEnlargement: true
+      })
+      .webp({ quality: 78 })
+      .toBuffer()
+  } catch {
+    return null
+  }
+}
 
 if (!sourcePath) {
   throw new Error('No legacy SQLite database found. Checked server/data/artstyle.db, legacy/vite-express-demo/server/data/artstyle.db and legacy/vite-express-demo/data-source/data/artstyle.db')
@@ -118,6 +144,7 @@ const uploadedArtworkRows = []
 
 for (const artwork of artworks) {
   let imageUrl = artwork.image
+  let thumbnailUrl = artwork.image
 
   if (typeof imageUrl === 'string' && imageUrl.startsWith('/uploads/')) {
     const localPath = resolve('legacy/vite-express-demo/public', imageUrl.replace(/^\//, ''))
@@ -126,10 +153,23 @@ for (const artwork of artworks) {
       const storagePath = `legacy/${artwork.id}-${localPath.split(/[/\\]/).pop()}`
       const uploaded = await supabase.storage.from(storageBucket).upload(storagePath, file, {
         upsert: true,
-        contentType: 'image/jpeg'
+        contentType: contentTypeFromPath(localPath)
       })
       if (!uploaded.error) {
         imageUrl = supabase.storage.from(storageBucket).getPublicUrl(storagePath).data.publicUrl
+        thumbnailUrl = imageUrl
+      }
+
+      const thumbnail = await createThumbnail(file)
+      if (thumbnail) {
+        const thumbPath = `legacy/thumbnails/${artwork.id}-thumb.webp`
+        const uploadedThumb = await supabase.storage.from(storageBucket).upload(thumbPath, thumbnail, {
+          upsert: true,
+          contentType: 'image/webp'
+        })
+        if (!uploadedThumb.error) {
+          thumbnailUrl = supabase.storage.from(storageBucket).getPublicUrl(thumbPath).data.publicUrl
+        }
       }
     }
   }
@@ -140,7 +180,7 @@ for (const artwork of artworks) {
     description: artwork.desc || '',
     prompt: artwork.prompt || '',
     image_url: imageUrl,
-    thumbnail_url: imageUrl,
+    thumbnail_url: thumbnailUrl,
     owner_id: userMap.get(artwork.artistId) || userMap.get(artwork.artist) || [...userMap.values()][0],
     source_type: artwork.isAIGenerated ? 'ai' : 'upload',
     visibility: artwork.inShowcase === 0 ? 'private' : 'public',

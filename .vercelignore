@@ -1,0 +1,14 @@
+.git
+.nuxt
+.output
+.vercel
+output
+node_modules
+coverage
+legacy
+migration-output
+findings.md
+progress.md
+task_plan.md
+*.log
+dev_output.txt

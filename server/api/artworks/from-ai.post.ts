@@ -1,4 +1,5 @@
 import { requireProfile } from '../../utils/auth'
+import { createImageThumbnail } from '../../utils/image'
 import { createArtworkEntry } from '../../utils/repository'
 import { storeBinaryAsset } from '../../utils/storage'
 
@@ -17,6 +18,7 @@ export default defineEventHandler(async (event) => {
   }
 
   let imageUrl = body.imageUrl
+  let thumbnailUrl = body.imageUrl
   if (!imageUrl.startsWith('/images/') && !imageUrl.startsWith('/uploads/')) {
     const response = await fetch(imageUrl)
     if (!response.ok) {
@@ -24,7 +26,12 @@ export default defineEventHandler(async (event) => {
     }
     const buffer = Buffer.from(await response.arrayBuffer())
     const stored = await storeBinaryAsset('artworks', buffer, 'ai-generated.jpg', response.headers.get('content-type') || 'image/jpeg')
+    const thumbnail = await createImageThumbnail(buffer, 'ai-generated.jpg')
+    const storedThumbnail = thumbnail
+      ? await storeBinaryAsset('artworks', thumbnail.buffer, thumbnail.filename, thumbnail.contentType)
+      : null
     imageUrl = stored.url
+    thumbnailUrl = storedThumbnail?.url || stored.url
   }
 
   return await createArtworkEntry({
@@ -32,7 +39,7 @@ export default defineEventHandler(async (event) => {
     description: body.description || '由 AI 创作工作台生成并保存到作品库。',
     prompt: body.prompt || '',
     image_url: imageUrl,
-    thumbnail_url: imageUrl,
+    thumbnail_url: thumbnailUrl,
     source_type: 'ai',
     visibility: body.visibility || 'public'
   }, viewer)

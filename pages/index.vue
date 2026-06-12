@@ -20,6 +20,7 @@ watch(() => bootstrap.value?.me, (profile) => {
 }, { immediate: true })
 
 const spotlight = computed(() => artworks.value[0] ?? null)
+const spotlightImage = computed(() => spotlight.value?.thumbnail_url || spotlight.value?.image_url || '/images/hero.png')
 
 const onSelectArtwork = (artwork: Artwork) => {
   selectedArtwork.value = artwork
@@ -62,8 +63,10 @@ const onSelectArtwork = (artwork: Artwork) => {
 
       <div class="relative min-h-[30rem] overflow-hidden rounded-[1.35rem] border border-ink/10 bg-ink shadow-card">
         <img
-          :src="spotlight?.image_url || '/images/hero.png'"
+          :src="spotlightImage"
           :alt="spotlight?.title || 'AI ArtStyle Lab hero image'"
+          fetchpriority="high"
+          decoding="async"
           class="h-full min-h-[30rem] w-full object-cover opacity-[0.92]"
         >
         <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/82 to-transparent p-6 text-white md:p-8">

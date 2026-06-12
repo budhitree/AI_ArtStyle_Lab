@@ -30,6 +30,15 @@ export default defineNuxtConfig({
   routeRules: {
     '/api/**': {
       cors: true
+    },
+    '/_nuxt/**': {
+      headers: { 'cache-control': 'public, max-age=31536000, immutable' }
+    },
+    '/images/**': {
+      headers: { 'cache-control': 'public, max-age=2592000' }
+    },
+    '/uploads/**': {
+      headers: { 'cache-control': 'public, max-age=2592000, immutable' }
     }
   },
   typescript: {
@@ -42,8 +51,8 @@ export default defineNuxtConfig({
       theme: {
         extend: {
           fontFamily: {
-            display: ['Fraunces', 'serif'],
-            body: ['Manrope', 'sans-serif']
+            display: ['Georgia', 'Cambria', 'Times New Roman', 'serif'],
+            body: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif']
           },
           colors: {
             canvas: '#f3eee4',

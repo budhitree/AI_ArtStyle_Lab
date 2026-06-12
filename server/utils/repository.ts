@@ -86,18 +86,26 @@ function toExhibitionRecord(row: Record<string, unknown>, curatorName = 'Unknown
   }
 }
 
-export async function listArtworks(scope: 'public' | 'mine', viewer?: Profile | null) {
+interface ListOptions {
+  limit?: number
+}
+
+export async function listArtworks(scope: 'public' | 'mine', viewer?: Profile | null, options: ListOptions = {}) {
   if (!isSupabaseConfigured()) {
     const state = useDemoState()
     const artworks = scope === 'mine' && viewer
       ? state.artworks.filter((item) => item.owner_id === viewer.id)
       : state.artworks.filter((item) => item.visibility === 'public')
-    return sortByDateDescending(artworks)
+    const sorted = sortByDateDescending(artworks)
+    return options.limit ? sorted.slice(0, options.limit) : sorted
   }
 
   const supabase = useSupabaseAdmin()
   let query = supabase.from('artworks').select('*')
   query = scope === 'mine' && viewer ? query.eq('owner_id', viewer.id) : query.eq('visibility', 'public')
+  if (options.limit) {
+    query = query.limit(options.limit)
+  }
 
   const { data, error } = await query.order('created_at', { ascending: false })
   if (error) {
