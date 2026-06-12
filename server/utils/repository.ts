@@ -1,5 +1,6 @@
 import type { Artwork, Exhibition, Profile } from '~/shared/types'
 import { useDemoState } from './demo-state'
+import { useLegacyState } from './legacy-state'
 import { isSupabaseConfigured, useSupabaseAdmin } from './supabase'
 
 function sortByDateDescending<T extends { created_at: string }>(items: T[]) {
@@ -20,6 +21,10 @@ function ensureCanEditExhibition(profile: Profile, exhibition: Exhibition) {
   }
 
   throw createError({ statusCode: 403, statusMessage: 'No permission to edit this exhibition.' })
+}
+
+function useLocalState() {
+  return useLegacyState() || useDemoState()
 }
 
 async function fetchProfilesMap(ids: string[]) {
@@ -92,7 +97,7 @@ interface ListOptions {
 
 export async function listArtworks(scope: 'public' | 'mine', viewer?: Profile | null, options: ListOptions = {}) {
   if (!isSupabaseConfigured()) {
-    const state = useDemoState()
+    const state = useLocalState()
     const artworks = scope === 'mine' && viewer
       ? state.artworks.filter((item) => item.owner_id === viewer.id)
       : state.artworks.filter((item) => item.visibility === 'public')
@@ -125,7 +130,7 @@ export async function createArtworkEntry(
   const now = new Date().toISOString()
 
   if (!isSupabaseConfigured()) {
-    const state = useDemoState()
+    const state = useLocalState()
     const artwork: Artwork = {
       id: crypto.randomUUID(),
       title: input.title,
@@ -166,7 +171,7 @@ export async function createArtworkEntry(
 
 export async function updateArtworkEntry(id: string, updates: Partial<Artwork>, viewer: Profile) {
   if (!isSupabaseConfigured()) {
-    const state = useDemoState()
+    const state = useLocalState()
     const artwork = state.artworks.find((item) => item.id === id)
     if (!artwork) {
       throw createError({ statusCode: 404, statusMessage: 'Artwork not found.' })
@@ -202,7 +207,7 @@ export async function updateArtworkEntry(id: string, updates: Partial<Artwork>, 
 
 export async function deleteArtworkEntry(id: string, viewer: Profile) {
   if (!isSupabaseConfigured()) {
-    const state = useDemoState()
+    const state = useLocalState()
     const artwork = state.artworks.find((item) => item.id === id)
     if (!artwork) {
       throw createError({ statusCode: 404, statusMessage: 'Artwork not found.' })
@@ -229,7 +234,7 @@ export async function deleteArtworkEntry(id: string, viewer: Profile) {
 
 export async function listExhibitions(scope: 'public' | 'mine', viewer?: Profile | null) {
   if (!isSupabaseConfigured()) {
-    const state = useDemoState()
+    const state = useLocalState()
     const exhibitions = scope === 'mine' && viewer
       ? state.exhibitions.filter((item) => item.curator_id === viewer.id || viewer.role === 'admin')
       : state.exhibitions.filter((item) => item.status === 'published')
@@ -264,7 +269,7 @@ export async function listExhibitions(scope: 'public' | 'mine', viewer?: Profile
 
 export async function getExhibitionById(id: string, viewer?: Profile | null) {
   if (!isSupabaseConfigured()) {
-    const state = useDemoState()
+    const state = useLocalState()
     const item = state.exhibitions.find((entry) => entry.id === id)
     if (!item) {
       throw createError({ statusCode: 404, statusMessage: 'Exhibition not found.' })
@@ -307,7 +312,7 @@ export async function createExhibitionEntry(
   const now = new Date().toISOString()
 
   if (!isSupabaseConfigured()) {
-    const state = useDemoState()
+    const state = useLocalState()
     const exhibition: Exhibition = {
       id: crypto.randomUUID(),
       title: input.title,
@@ -356,7 +361,7 @@ export async function updateExhibitionEntry(id: string, updates: Partial<Exhibit
   ensureCanEditExhibition(viewer, exhibition)
 
   if (!isSupabaseConfigured()) {
-    const state = useDemoState()
+    const state = useLocalState()
     const target = state.exhibitions.find((item) => item.id === id)!
     Object.assign(target, updates, { updated_at: new Date().toISOString() })
     return target

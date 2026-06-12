@@ -1,15 +1,24 @@
 create extension if not exists "pgcrypto";
 
-create table if not exists public.profiles (
+drop trigger if exists on_auth_user_created on auth.users;
+drop function if exists public.handle_new_user();
+
+drop table if exists public.exhibition_artworks cascade;
+drop table if exists public.exhibitions cascade;
+drop table if exists public.ai_generations cascade;
+drop table if exists public.artworks cascade;
+drop table if exists public.profiles cascade;
+
+create table public.profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null unique,
   name text not null,
-  role text not null check (role in ('student', 'teacher', 'admin')),
+  role text not null default 'student' check (role in ('student', 'teacher', 'admin')),
   avatar_url text,
   created_at timestamptz not null default now()
 );
 
-create table if not exists public.artworks (
+create table public.artworks (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   description text not null default '',
@@ -23,7 +32,7 @@ create table if not exists public.artworks (
   updated_at timestamptz not null default now()
 );
 
-create table if not exists public.ai_generations (
+create table public.ai_generations (
   id uuid primary key default gen_random_uuid(),
   user_id uuid not null references public.profiles(id) on delete cascade,
   prompt text not null,
@@ -32,7 +41,7 @@ create table if not exists public.ai_generations (
   created_at timestamptz not null default now()
 );
 
-create table if not exists public.exhibitions (
+create table public.exhibitions (
   id uuid primary key default gen_random_uuid(),
   title text not null,
   description text not null default '',
@@ -43,7 +52,7 @@ create table if not exists public.exhibitions (
   updated_at timestamptz not null default now()
 );
 
-create table if not exists public.exhibition_artworks (
+create table public.exhibition_artworks (
   exhibition_id uuid not null references public.exhibitions(id) on delete cascade,
   artwork_id uuid not null references public.artworks(id) on delete cascade,
   created_at timestamptz not null default now(),
@@ -68,14 +77,12 @@ begin
   on conflict (id) do update
   set email = excluded.email,
       name = excluded.name,
-      role = excluded.role,
       avatar_url = excluded.avatar_url;
 
   return new;
 end;
 $$;
 
-drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
 after insert on auth.users
 for each row execute procedure public.handle_new_user();
@@ -208,3 +215,12 @@ with check (
       )
   )
 );
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values
+  ('artworks', 'artworks', true, 12582912, array['image/jpeg', 'image/png', 'image/webp', 'image/gif']),
+  ('exhibitions', 'exhibitions', true, 12582912, array['image/jpeg', 'image/png', 'image/webp', 'image/gif'])
+on conflict (id) do update
+set public = excluded.public,
+    file_size_limit = excluded.file_size_limit,
+    allowed_mime_types = excluded.allowed_mime_types;

@@ -103,8 +103,7 @@ export const useAuthStore = defineStore('auth', {
         password: payload.password,
         options: {
           data: {
-            name: payload.name,
-            role: payload.role
+            name: payload.name
           }
         }
       })

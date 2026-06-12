@@ -100,15 +100,6 @@ const fillDemo = (role: UserRole) => {
           <input v-model="form.name" class="field-input" type="text" placeholder="输入展示名称">
         </label>
 
-        <label v-if="mode === 'register'" class="block space-y-2">
-          <span class="field-label">角色</span>
-          <select v-model="form.role" class="field-input">
-            <option value="student">学生</option>
-            <option value="teacher">教师</option>
-            <option value="admin">管理员</option>
-          </select>
-        </label>
-
         <label class="block space-y-2">
           <span class="field-label">密码</span>
           <input v-model="form.password" class="field-input" type="password" placeholder="请输入密码">
