@@ -91,8 +91,13 @@ const fillDemo = (role: UserRole) => {
 
       <div class="mt-8 space-y-5">
         <label class="block space-y-2">
-          <span class="field-label">邮箱</span>
-          <input v-model="form.email" class="field-input" type="email" placeholder="student@school.edu">
+          <span class="field-label">{{ mode === 'login' ? '账号或邮箱' : '邮箱' }}</span>
+          <input
+            v-model="form.email"
+            class="field-input"
+            :type="mode === 'login' ? 'text' : 'email'"
+            :placeholder="mode === 'login' ? '学号 / 旧账号 / 邮箱' : 'student@school.edu'"
+          >
         </label>
 
         <label v-if="mode === 'register'" class="block space-y-2">

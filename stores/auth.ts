@@ -8,6 +8,16 @@ interface AuthState {
 
 const DEMO_STORAGE_KEY = 'ai-artstyle-lab-demo-profile'
 
+function normalizeLoginEmail(value: string) {
+  const account = value.trim()
+  if (account.includes('@')) {
+    return account
+  }
+
+  const safeAccount = account.toLowerCase().replace(/[^a-z0-9._-]+/g, '-')
+  return `legacy-${safeAccount}@artstyle-lab.local`
+}
+
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
     profile: null,
@@ -72,8 +82,9 @@ export const useAuthStore = defineStore('auth', {
         throw new Error('Supabase 未配置')
       }
 
+      const email = normalizeLoginEmail(payload.email)
       const { data, error } = await supabase.auth.signInWithPassword({
-        email: payload.email,
+        email,
         password: payload.password
       })
 
