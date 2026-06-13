@@ -19,20 +19,25 @@ function listQuery(value: unknown) {
 export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const ids = listQuery(query.ids)
-  const scope = query.scope === 'mine' ? 'mine' : ids?.length ? 'accessible' : 'public'
+  const excludeIds = listQuery(query.exclude)
+  const scope = query.scope === 'mine' ? 'mine' : query.scope === 'curation' ? 'curation' : ids?.length ? 'accessible' : 'public'
   const limit = numberQuery(query.limit, undefined)
   const offset = numberQuery(query.offset, 0)
+  const random = query.random === 'true' || query.random === '1'
   const visibility = query.visibility === 'public' || query.visibility === 'private' ? query.visibility as ArtworkVisibility : undefined
   const sourceType = query.source_type === 'ai' || query.source_type === 'upload' ? query.source_type as ArtworkSourceType : undefined
 
-  if (scope === 'mine') {
+  if (scope === 'mine' || scope === 'curation') {
     const viewer = await requireProfile(event)
-    return await listArtworks('mine', viewer, { ids, limit, offset, sourceType, visibility })
+    if (scope === 'curation' && !['teacher', 'admin'].includes(viewer.role)) {
+      throw createError({ statusCode: 403, statusMessage: 'Only teachers or admins can curate artworks.' })
+    }
+    return await listArtworks(scope, viewer, { excludeIds, ids, limit, offset, random, sourceType, visibility })
   }
 
   const viewer = await getOptionalProfile(event)
   if (scope === 'public') {
     setHeader(event, 'Cache-Control', 'public, s-maxage=30, stale-while-revalidate=120')
   }
-  return await listArtworks(scope, viewer, { ids, limit, offset, sourceType, visibility })
+  return await listArtworks(scope, viewer, { excludeIds, ids, limit, offset, random, sourceType, visibility })
 })

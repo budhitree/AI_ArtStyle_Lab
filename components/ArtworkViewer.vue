@@ -10,6 +10,31 @@ const emit = defineEmits<{
   close: []
 }>()
 
+const downloadOriginal = async () => {
+  if (!props.artwork || !import.meta.client) {
+    return
+  }
+
+  const safeTitle = props.artwork.title.replace(/[\\/:*?"<>|]+/g, '-').trim() || 'artwork'
+  const extension = props.artwork.image_url.split('?')[0]?.split('.').pop() || 'png'
+  const filename = `${safeTitle}.${extension}`
+
+  try {
+    const response = await fetch(props.artwork.image_url)
+    const blob = await response.blob()
+    const objectUrl = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = objectUrl
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    link.remove()
+    URL.revokeObjectURL(objectUrl)
+  } catch {
+    window.open(props.artwork.image_url, '_blank', 'noopener')
+  }
+}
+
 watch(() => props.artwork, (value) => {
   if (import.meta.client) {
     document.body.style.overflow = value ? 'hidden' : ''
@@ -40,7 +65,10 @@ onBeforeUnmount(() => {
               <p class="section-kicker">作品详情</p>
               <h3 class="mt-3 font-display text-4xl leading-none">{{ artwork.title }}</h3>
             </div>
-            <button class="button-secondary px-4" @click="emit('close')">关闭</button>
+            <div class="flex shrink-0 gap-2">
+              <button class="button-primary px-4" @click="downloadOriginal">下载原图</button>
+              <button class="button-secondary px-4" @click="emit('close')">关闭</button>
+            </div>
           </div>
           <div class="space-y-5 text-sm leading-7 text-ink/68">
             <p>{{ artwork.description }}</p>

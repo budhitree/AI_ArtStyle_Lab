@@ -10,6 +10,7 @@ interface AuthState {
   profile: Profile | null
   accessToken: string | null
   initialized: boolean
+  authListenerBound: boolean
 }
 
 const DEMO_STORAGE_KEY = 'ai-artstyle-lab-demo-profile'
@@ -18,7 +19,8 @@ export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
     profile: null,
     accessToken: null,
-    initialized: false
+    initialized: false,
+    authListenerBound: false
   }),
   getters: {
     isAuthenticated: (state) => Boolean(state.profile),
@@ -57,6 +59,33 @@ export const useAuthStore = defineStore('auth', {
       this.accessToken = session.access_token
       await this.refreshProfile()
       this.initialized = true
+    },
+
+    bindAuthListener() {
+      if (!import.meta.client || this.authListenerBound) {
+        return
+      }
+
+      const supabase = useSupabaseBrowserClient()
+      if (!supabase) {
+        return
+      }
+
+      this.authListenerBound = true
+      supabase.auth.onAuthStateChange((_event, session) => {
+        const nextToken = session?.access_token ?? null
+        if (nextToken === this.accessToken) {
+          return
+        }
+
+        this.accessToken = nextToken
+        if (!nextToken) {
+          this.profile = null
+          return
+        }
+
+        void this.refreshProfile()
+      })
     },
 
     async signIn(payload: AuthPayload) {

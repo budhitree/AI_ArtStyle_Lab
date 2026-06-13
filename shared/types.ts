@@ -66,5 +66,6 @@ export interface AppBootstrap {
   mode: 'demo' | 'supabase'
   artworks: Artwork[]
   exhibitions: Exhibition[]
+  publicArtworkCount: number
   me: Profile | null
 }

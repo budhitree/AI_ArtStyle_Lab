@@ -33,9 +33,11 @@ const loadExhibitionArtworks = async () => {
     return
   }
 
+  const canLoadCurationScope = ['teacher', 'admin'].includes(auth.role || '')
   const artworks = await request<Artwork[]>('/api/artworks', {
     query: {
-      ids: exhibition.value.artwork_ids.join(',')
+      ids: exhibition.value.artwork_ids.join(','),
+      ...(canLoadCurationScope ? { scope: 'curation' } : {})
     }
   })
   mergeAvailableArtworks(artworks)
@@ -54,7 +56,7 @@ const loadCurationArtworks = async (reset = false) => {
 
     const next = await request<Artwork[]>('/api/artworks', {
       query: {
-        scope: 'mine',
+        scope: 'curation',
         limit: curationPageSize + 1,
         offset: curationArtworks.value.length
       }
@@ -198,7 +200,7 @@ const detachArtwork = (artwork: Artwork) => {
       </div>
 
       <div class="panel studio-grid px-4 py-5 md:px-6">
-        <p class="section-kicker">可选作品</p>
+        <p class="section-kicker">学生作品库</p>
         <div class="mt-6 grid gap-4 md:grid-cols-2">
           <article v-for="artwork in remainingArtworks" :key="artwork.id" class="overflow-hidden rounded-[1.1rem] border border-ink/10 bg-white/78 shadow-soft">
             <img :src="artwork.thumbnail_url || artwork.image_url" :alt="artwork.title" loading="lazy" decoding="async" class="aspect-[4/5] w-full object-cover">

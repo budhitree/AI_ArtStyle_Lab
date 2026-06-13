@@ -6,20 +6,25 @@ const artworkPageSize = 24
 const exhibitionPageSize = 6
 const artworks = ref<Artwork[]>([])
 const exhibitions = ref<Exhibition[]>([])
+const publicArtworkCount = ref(0)
 const artworkBusy = ref(false)
 const exhibitionBusy = ref(false)
 const hasMoreArtworks = ref(false)
 const hasMoreExhibitions = ref(false)
+const spotlightIndex = ref(0)
+let spotlightTimer: ReturnType<typeof setInterval> | null = null
 
 const { data: bootstrap } = await useAsyncData('bootstrap', () => $fetch<AppBootstrap>('/api/bootstrap'))
 
 watch(bootstrap, (value) => {
   const initialArtworks = value?.artworks ?? []
   const initialExhibitions = value?.exhibitions ?? []
+  publicArtworkCount.value = value?.publicArtworkCount ?? initialArtworks.length
   artworks.value = initialArtworks.slice(0, artworkPageSize)
   exhibitions.value = initialExhibitions.slice(0, exhibitionPageSize)
-  hasMoreArtworks.value = initialArtworks.length > artworkPageSize
+  hasMoreArtworks.value = publicArtworkCount.value > artworks.value.length
   hasMoreExhibitions.value = initialExhibitions.length > exhibitionPageSize
+  spotlightIndex.value = 0
 }, { immediate: true })
 
 watch(() => bootstrap.value?.me, (profile) => {
@@ -29,8 +34,31 @@ watch(() => bootstrap.value?.me, (profile) => {
   }
 }, { immediate: true })
 
-const spotlight = computed(() => artworks.value[0] ?? null)
+const spotlightItems = computed(() => artworks.value.slice(0, 6))
+const spotlight = computed(() => spotlightItems.value[spotlightIndex.value % Math.max(spotlightItems.value.length, 1)] ?? null)
 const spotlightImage = computed(() => spotlight.value?.thumbnail_url || spotlight.value?.image_url || '/images/hero.png')
+
+const startSpotlightTimer = () => {
+  if (!import.meta.client) {
+    return
+  }
+  if (spotlightTimer) {
+    clearInterval(spotlightTimer)
+  }
+  spotlightTimer = setInterval(() => {
+    if (spotlightItems.value.length > 1) {
+      spotlightIndex.value = (spotlightIndex.value + 1) % spotlightItems.value.length
+    }
+  }, 5200)
+}
+
+watch(() => spotlightItems.value.length, startSpotlightTimer, { immediate: true })
+
+onBeforeUnmount(() => {
+  if (spotlightTimer) {
+    clearInterval(spotlightTimer)
+  }
+})
 
 const onSelectArtwork = (artwork: Artwork) => {
   selectedArtwork.value = artwork
@@ -45,12 +73,13 @@ const loadMoreArtworks = async () => {
   try {
     const next = await $fetch<Artwork[]>('/api/artworks', {
       query: {
+        exclude: artworks.value.map((artwork) => artwork.id).join(','),
         limit: artworkPageSize,
-        offset: artworks.value.length
+        random: true
       }
     })
     artworks.value = [...artworks.value, ...next]
-    hasMoreArtworks.value = next.length === artworkPageSize
+    hasMoreArtworks.value = publicArtworkCount.value > artworks.value.length && next.length > 0
   } finally {
     artworkBusy.value = false
   }
@@ -97,7 +126,7 @@ const loadMoreExhibitions = async () => {
 
         <div class="mt-10 grid grid-cols-3 gap-3">
           <div class="border-l border-ink/15 pl-4">
-            <p class="font-display text-4xl">{{ artworks.length }}{{ hasMoreArtworks ? '+' : '' }}</p>
+            <p class="font-display text-4xl">{{ publicArtworkCount }}</p>
             <p class="mt-1 text-xs font-bold text-ink/45">公开作品</p>
           </div>
           <div class="border-l border-ink/15 pl-4">
@@ -112,13 +141,16 @@ const loadMoreExhibitions = async () => {
       </div>
 
       <div class="relative min-h-[30rem] overflow-hidden rounded-[1.35rem] border border-ink/10 bg-ink shadow-card">
-        <img
-          :src="spotlightImage"
-          :alt="spotlight?.title || 'AI ArtStyle Lab hero image'"
-          fetchpriority="high"
-          decoding="async"
-          class="h-full min-h-[30rem] w-full object-cover opacity-[0.92]"
-        >
+        <Transition name="fade" mode="out-in">
+          <img
+            :key="spotlight?.id || 'fallback'"
+            :src="spotlightImage"
+            :alt="spotlight?.title || 'AI ArtStyle Lab hero image'"
+            fetchpriority="high"
+            decoding="async"
+            class="h-full min-h-[30rem] w-full object-cover opacity-[0.92]"
+          >
+        </Transition>
         <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/82 to-transparent p-6 text-white md:p-8">
           <p class="text-xs font-extrabold text-white/60">推荐作品</p>
           <h2 class="mt-3 max-w-lg font-display text-4xl leading-none">{{ spotlight?.title || 'AI ArtStyle Lab' }}</h2>
@@ -199,3 +231,15 @@ const loadMoreExhibitions = async () => {
     <ArtworkViewer :artwork="selectedArtwork" @close="selectedArtwork = null" />
   </div>
 </template>
+
+<style scoped>
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.35s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>
