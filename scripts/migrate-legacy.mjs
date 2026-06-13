@@ -87,6 +87,11 @@ function legacyEmail(user) {
   return `legacy-${safeId}@artstyle-lab.local`
 }
 
+function accountCodeForUser(user) {
+  const id = String(user.id).trim().toLowerCase()
+  return id.includes('@') ? id.split('@')[0] : id
+}
+
 function passwordForUser(user) {
   const password = typeof user.password === 'string' ? user.password : ''
   if (password.length >= 6) {
@@ -205,6 +210,7 @@ async function ensureAuthUsers(supabase, users) {
         password: passwordForUser(user),
         email_confirm: true,
         user_metadata: {
+          account_code: accountCodeForUser(user),
           name: user.name,
           legacy_id: String(user.id)
         },
@@ -225,6 +231,7 @@ async function ensureAuthUsers(supabase, users) {
       password: passwordForUser(user),
       email_confirm: true,
       user_metadata: {
+        account_code: accountCodeForUser(user),
         name: user.name,
         legacy_id: String(user.id)
       },
@@ -341,6 +348,7 @@ if (!firstUserId) {
 await upsertInBatches(supabase, 'profiles', users.map((user) => ({
   id: authResult.userMap.get(String(user.id)),
   email: legacyEmail(user),
+  account_code: accountCodeForUser(user),
   name: user.name || String(user.id),
   role: normalizeRole(user.userType),
   avatar_url: user.avatar || null,

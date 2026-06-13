@@ -2,6 +2,7 @@ import Database from 'better-sqlite3'
 import { existsSync } from 'node:fs'
 import { resolve } from 'node:path'
 import type { Artwork, Exhibition, Profile } from '~/shared/types'
+import { accountCodeFromAuthEmail } from '~/shared/account'
 
 interface LocalState {
   profiles: Profile[]
@@ -85,9 +86,11 @@ export function useLegacyState(): LocalState | null {
 
   const profiles: Profile[] = users.map((user) => {
     const id = String(user.id)
+    const email = id.includes('@') ? id : `${id}@legacy.artstyle.local`
     return {
       id,
-      email: id.includes('@') ? id : `${id}@legacy.artstyle.local`,
+      email,
+      account_code: accountCodeFromAuthEmail(email),
       name: String(user.name || id),
       role: normalizeRole(String(user.userType || 'student')),
       avatar_url: (user.avatar as string | null) || null,

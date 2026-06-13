@@ -1,6 +1,7 @@
 import type { H3Event } from 'h3'
 import { demoProfiles } from '~/shared/demo-data'
 import type { Profile } from '~/shared/types'
+import { accountCodeFromAuthEmail } from '~/shared/account'
 import { isSupabaseConfigured, useSupabaseAdmin } from './supabase'
 
 function extractToken(event: H3Event) {
@@ -44,7 +45,10 @@ export const getOptionalProfile = async (event: H3Event): Promise<Profile | null
     return null
   }
 
-  return data satisfies Profile
+  return {
+    ...data,
+    account_code: data.account_code || accountCodeFromAuthEmail(data.email)
+  } satisfies Profile
 }
 
 export const requireProfile = async (event: H3Event): Promise<Profile> => {

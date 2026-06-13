@@ -6,6 +6,7 @@ export const demoProfiles: Profile[] = [
   {
     id: 'demo-student',
     email: 'student@artstyle.lab',
+    account_code: '20250101',
     name: '沈知遥',
     role: 'student',
     avatar_url: null,
@@ -14,6 +15,7 @@ export const demoProfiles: Profile[] = [
   {
     id: 'demo-teacher',
     email: 'teacher@artstyle.lab',
+    account_code: '2506049',
     name: '林策',
     role: 'teacher',
     avatar_url: null,
@@ -22,6 +24,7 @@ export const demoProfiles: Profile[] = [
   {
     id: 'demo-admin',
     email: 'admin@artstyle.lab',
+    account_code: 'admin',
     name: '馆务管理员',
     role: 'admin',
     avatar_url: null,

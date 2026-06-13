@@ -6,6 +6,7 @@ export type ExhibitionStatus = 'draft' | 'published'
 export interface Profile {
   id: string
   email: string
+  account_code: string
   name: string
   role: UserRole
   avatar_url: string | null
@@ -41,7 +42,7 @@ export interface Exhibition {
 }
 
 export interface AuthPayload {
-  email: string
+  account_code: string
   password: string
   name?: string
   role?: UserRole

@@ -51,7 +51,7 @@ watch(() => route.path, () => {
         <div class="flex items-center gap-3">
           <div v-if="props.profile" class="hidden text-right xl:block">
             <p class="text-sm font-semibold">{{ props.profile.name }}</p>
-            <p class="text-[0.65rem] font-bold text-ink/45">{{ roleLabel[props.profile.role] }}</p>
+            <p class="text-[0.65rem] font-bold text-ink/45">{{ props.profile.account_code }} · {{ roleLabel[props.profile.role] }}</p>
           </div>
           <button
             v-if="props.profile"
@@ -84,7 +84,7 @@ watch(() => route.path, () => {
           <div class="flex items-center justify-between gap-3 rounded-xl bg-white/65 px-4 py-3">
             <div v-if="props.profile">
               <p class="text-sm font-bold">{{ props.profile.name }}</p>
-              <p class="text-xs text-ink/45">{{ roleLabel[props.profile.role] }}</p>
+              <p class="text-xs text-ink/45">{{ props.profile.account_code }} · {{ roleLabel[props.profile.role] }}</p>
             </div>
             <p v-else class="text-sm font-bold text-ink/65">未登录</p>
             <button v-if="props.profile" class="button-secondary px-4 py-2" @click="auth.signOut()">退出</button>

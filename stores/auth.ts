@@ -1,4 +1,10 @@
 import type { AuthPayload, Profile } from '~/shared/types'
+import {
+  authEmailsForAccountCode,
+  inferRoleFromAccountCode,
+  isRegistrableAccountCode,
+  normalizeAccountCode
+} from '~/shared/account'
 
 interface AuthState {
   profile: Profile | null
@@ -7,16 +13,6 @@ interface AuthState {
 }
 
 const DEMO_STORAGE_KEY = 'ai-artstyle-lab-demo-profile'
-
-function normalizeLoginEmail(value: string) {
-  const account = value.trim()
-  if (account.includes('@')) {
-    return account
-  }
-
-  const safeAccount = account.toLowerCase().replace(/[^a-z0-9._-]+/g, '-')
-  return `legacy-${safeAccount}@artstyle-lab.local`
-}
 
 export const useAuthStore = defineStore('auth', {
   state: (): AuthState => ({
@@ -68,7 +64,8 @@ export const useAuthStore = defineStore('auth', {
 
       if (isDemoMode.value) {
         const demoProfiles = (await import('~/shared/demo-data')).demoProfiles
-        const profile = demoProfiles.find((item) => item.email === payload.email) ?? demoProfiles[0]
+        const accountCode = normalizeAccountCode(payload.account_code)
+        const profile = demoProfiles.find((item) => item.account_code === accountCode) ?? demoProfiles[0]
         this.profile = profile
         this.accessToken = `demo-${profile.id}`
         if (import.meta.client) {
@@ -82,14 +79,26 @@ export const useAuthStore = defineStore('auth', {
         throw new Error('Supabase 未配置')
       }
 
-      const email = normalizeLoginEmail(payload.email)
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password: payload.password
-      })
+      let data = null
+      let lastError = null
 
-      if (error) {
-        throw error
+      for (const email of authEmailsForAccountCode(payload.account_code)) {
+        const result = await supabase.auth.signInWithPassword({
+          email,
+          password: payload.password
+        })
+
+        if (!result.error) {
+          data = result.data
+          lastError = null
+          break
+        }
+
+        lastError = result.error
+      }
+
+      if (lastError || !data) {
+        throw lastError || new Error('登录失败')
       }
 
       this.accessToken = data.session?.access_token ?? null
@@ -104,28 +113,25 @@ export const useAuthStore = defineStore('auth', {
         return await this.signIn(payload)
       }
 
-      const supabase = useSupabaseBrowserClient()
-      if (!supabase) {
-        throw new Error('Supabase 未配置')
+      const accountCode = normalizeAccountCode(payload.account_code)
+      const role = inferRoleFromAccountCode(accountCode)
+      if (!isRegistrableAccountCode(accountCode) || !role) {
+        throw new Error('请输入 8 位学号或 7 位工号。')
       }
 
-      const { data, error } = await supabase.auth.signUp({
-        email: payload.email,
-        password: payload.password,
-        options: {
-          data: {
-            name: payload.name
-          }
+      await $fetch('/api/auth/register', {
+        method: 'POST',
+        body: {
+          account_code: accountCode,
+          password: payload.password,
+          name: payload.name
         }
       })
 
-      if (error) {
-        throw error
-      }
-
-      this.accessToken = data.session?.access_token ?? null
-      await this.refreshProfile()
-      return this.profile
+      return await this.signIn({
+        account_code: accountCode,
+        password: payload.password
+      })
     },
 
     async refreshProfile() {
