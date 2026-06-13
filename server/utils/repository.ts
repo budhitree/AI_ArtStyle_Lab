@@ -7,6 +7,10 @@ function sortByDateDescending<T extends { created_at: string }>(items: T[]) {
   return [...items].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
 }
 
+function uniqueIds(ids: string[]) {
+  return [...new Set(ids.filter(Boolean))]
+}
+
 function ensureCanEditArtwork(profile: Profile, artwork: Artwork) {
   if (profile.role === 'admin' || artwork.owner_id === profile.id) {
     return
@@ -56,7 +60,7 @@ async function fetchExhibitionArtworkIds(id: string) {
     throw createError({ statusCode: 500, statusMessage: error.message })
   }
 
-  return (data || []).map((link) => link.artwork_id as string)
+  return uniqueIds((data || []).map((link) => link.artwork_id as string))
 }
 
 function toArtworkRecord(row: Record<string, unknown>, ownerName = 'Unknown'): Artwork {
@@ -406,7 +410,11 @@ export async function listExhibitions(scope: 'public' | 'mine', viewer?: Profile
       : state.exhibitions.filter((item) => item.status === 'published')
     const sorted = sortByDateDescending(exhibitions)
     const start = options.offset ?? 0
-    return options.limit ? sorted.slice(start, start + options.limit) : sorted.slice(start)
+    const page = options.limit ? sorted.slice(start, start + options.limit) : sorted.slice(start)
+    return page.map((item) => ({
+      ...item,
+      artwork_ids: uniqueIds(item.artwork_ids)
+    }))
   }
 
   const supabase = useSupabaseAdmin()
@@ -438,7 +446,7 @@ export async function listExhibitions(scope: 'public' | 'mine', viewer?: Profile
     toExhibitionRecord(
       row,
       profiles.get(row.curator_id as string) || 'Unknown',
-      (junctions || []).filter((link) => link.exhibition_id === row.id).map((link) => link.artwork_id)
+      uniqueIds((junctions || []).filter((link) => link.exhibition_id === row.id).map((link) => link.artwork_id))
     )
   )
 }
@@ -455,7 +463,10 @@ export async function getExhibitionById(id: string, viewer?: Profile | null) {
       throw createError({ statusCode: 403, statusMessage: 'Exhibition is not public yet.' })
     }
 
-    return item
+    return {
+      ...item,
+      artwork_ids: uniqueIds(item.artwork_ids)
+    }
   }
 
   const supabase = useSupabaseAdmin()
@@ -486,6 +497,7 @@ export async function createExhibitionEntry(
   }
 
   const now = new Date().toISOString()
+  const artworkIds = uniqueIds(input.artwork_ids)
 
   if (!isSupabaseConfigured()) {
     const state = useLocalState()
@@ -497,7 +509,7 @@ export async function createExhibitionEntry(
       status: 'draft',
       curator_id: viewer.id,
       curator_name: viewer.name,
-      artwork_ids: input.artwork_ids,
+      artwork_ids: artworkIds,
       created_at: now,
       updated_at: now
     }
@@ -522,24 +534,28 @@ export async function createExhibitionEntry(
     throw createError({ statusCode: 500, statusMessage: error?.message || 'Failed to create exhibition.' })
   }
 
-  if (input.artwork_ids.length) {
-    await supabase.from('exhibition_artworks').insert(input.artwork_ids.map((artworkId) => ({
+  if (artworkIds.length) {
+    await supabase.from('exhibition_artworks').insert(artworkIds.map((artworkId) => ({
       exhibition_id: data.id,
       artwork_id: artworkId
     })))
   }
 
-  return toExhibitionRecord(data, viewer.name, input.artwork_ids)
+  return toExhibitionRecord(data, viewer.name, artworkIds)
 }
 
 export async function updateExhibitionEntry(id: string, updates: Partial<Exhibition>, viewer: Profile) {
   const exhibition = await getExhibitionById(id, viewer)
   ensureCanEditExhibition(viewer, exhibition)
+  const artworkIds = Array.isArray(updates.artwork_ids) ? uniqueIds(updates.artwork_ids) : undefined
 
   if (!isSupabaseConfigured()) {
     const state = useLocalState()
     const target = state.exhibitions.find((item) => item.id === id)!
-    Object.assign(target, updates, { updated_at: new Date().toISOString() })
+    Object.assign(target, updates, {
+      artwork_ids: artworkIds ?? target.artwork_ids,
+      updated_at: new Date().toISOString()
+    })
     return target
   }
 
@@ -571,17 +587,17 @@ export async function updateExhibitionEntry(id: string, updates: Partial<Exhibit
     throw createError({ statusCode: 500, statusMessage: error?.message || 'Failed to update exhibition.' })
   }
 
-  if (Array.isArray(updates.artwork_ids)) {
+  if (artworkIds) {
     await supabase.from('exhibition_artworks').delete().eq('exhibition_id', id)
-    if (updates.artwork_ids.length) {
-      await supabase.from('exhibition_artworks').insert(updates.artwork_ids.map((artworkId) => ({
+    if (artworkIds.length) {
+      await supabase.from('exhibition_artworks').insert(artworkIds.map((artworkId) => ({
         exhibition_id: id,
         artwork_id: artworkId
       })))
     }
   }
 
-  return toExhibitionRecord(data, exhibition.curator_name, updates.artwork_ids ?? exhibition.artwork_ids)
+  return toExhibitionRecord(data, exhibition.curator_name, artworkIds ?? exhibition.artwork_ids)
 }
 
 export async function publishExhibitionEntry(id: string, viewer: Profile) {
@@ -593,7 +609,7 @@ export async function deleteExhibitionEntry(id: string, viewer: Profile) {
   ensureCanEditExhibition(viewer, exhibition)
 
   if (!isSupabaseConfigured()) {
-    const state = useDemoState()
+    const state = useLocalState()
     state.exhibitions = state.exhibitions.filter((item) => item.id !== id)
     return { success: true }
   }

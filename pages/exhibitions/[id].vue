@@ -13,7 +13,7 @@ const pageBusy = ref(true)
 const exhibition = ref<Exhibition | null>(null)
 const availableArtworks = ref<Artwork[]>([])
 const curationArtworks = ref<Artwork[]>([])
-const curationPageSize = 12
+const curationPageSize = 48
 const curationBusy = ref(false)
 const hasMoreCuration = ref(false)
 
@@ -29,6 +29,8 @@ const mergeAvailableArtworks = (items: Artwork[]) => {
   const merged = new Map([...availableArtworks.value, ...items].map((artwork) => [artwork.id, artwork]))
   availableArtworks.value = [...merged.values()]
 }
+
+const uniqueArtworkIds = (ids: string[]) => [...new Set(ids.filter(Boolean))]
 
 const loadExhibitionArtworks = async () => {
   if (!exhibition.value?.artwork_ids.length) {
@@ -64,7 +66,7 @@ const loadCurationArtworks = async (reset = false) => {
       }
     })
     const page = next.slice(0, curationPageSize)
-    curationArtworks.value = [...curationArtworks.value, ...page]
+    curationArtworks.value = [...new Map([...curationArtworks.value, ...page].map((artwork) => [artwork.id, artwork])).values()]
     hasMoreCuration.value = next.length > curationPageSize
     mergeAvailableArtworks(page)
   } finally {
@@ -81,6 +83,7 @@ const load = async () => {
     }
 
     exhibition.value = await request<Exhibition>(`/api/exhibitions/${route.params.id}`)
+    exhibition.value.artwork_ids = uniqueArtworkIds(exhibition.value.artwork_ids)
     availableArtworks.value = []
     curationArtworks.value = []
     hasMoreCuration.value = false
@@ -115,26 +118,51 @@ const exhibitionArtworks = computed(() => {
   if (!exhibition.value) {
     return []
   }
-  const ids = new Set(exhibition.value.artwork_ids)
-  return availableArtworks.value.filter((item) => ids.has(item.id))
+  const artworkMap = new Map(availableArtworks.value.map((item) => [item.id, item]))
+  return uniqueArtworkIds(exhibition.value.artwork_ids)
+    .map((id) => artworkMap.get(id))
+    .filter(Boolean) as Artwork[]
+})
+
+const selectedArtworkIds = computed(() => new Set(exhibition.value?.artwork_ids || []))
+
+const exhibitionArtworkCount = computed(() => uniqueArtworkIds(exhibition.value?.artwork_ids || []).length)
+
+const loadedCurationCount = computed(() => new Set(curationArtworks.value.map((artwork) => artwork.id)).size)
+
+const selectableArtworkCount = computed(() =>
+  curationArtworks.value.filter((item) => !selectedArtworkIds.value.has(item.id)).length
+)
+
+const curationSummary = computed(() => `已选 ${exhibitionArtworkCount.value} 件 / 本次已加载 ${loadedCurationCount.value} 件`)
+
+const savePayload = computed(() => {
+  if (!exhibition.value) {
+    return null
+  }
+
+  return {
+    ...exhibition.value,
+    artwork_ids: uniqueArtworkIds(exhibition.value.artwork_ids)
+  }
 })
 
 const remainingArtworks = computed(() => {
   if (!exhibition.value) {
     return []
   }
-  const ids = new Set(exhibition.value.artwork_ids)
-  return curationArtworks.value.filter((item) => !ids.has(item.id))
+  return curationArtworks.value.filter((item) => !selectedArtworkIds.value.has(item.id))
 })
 
 const save = async () => {
-  if (!exhibition.value) {
+  if (!exhibition.value || !savePayload.value) {
     return
   }
   exhibition.value = await request<Exhibition>(`/api/exhibitions/${exhibition.value.id}`, {
     method: 'PATCH',
-    body: exhibition.value
+    body: savePayload.value
   })
+  exhibition.value.artwork_ids = uniqueArtworkIds(exhibition.value.artwork_ids)
   status.value = '展览已更新。'
 }
 
@@ -160,6 +188,11 @@ const attachArtwork = (artwork: Artwork) => {
   if (!exhibition.value) {
     return
   }
+  if (selectedArtworkIds.value.has(artwork.id)) {
+    status.value = '这件作品已经在展览中。'
+    return
+  }
+  mergeAvailableArtworks([artwork])
   exhibition.value.artwork_ids = [...exhibition.value.artwork_ids, artwork.id]
 }
 
@@ -167,7 +200,7 @@ const detachArtwork = (artwork: Artwork) => {
   if (!exhibition.value) {
     return
   }
-  exhibition.value.artwork_ids = exhibition.value.artwork_ids.filter((item) => item !== artwork.id)
+  exhibition.value.artwork_ids = uniqueArtworkIds(exhibition.value.artwork_ids).filter((item) => item !== artwork.id)
 }
 </script>
 
@@ -199,7 +232,7 @@ const detachArtwork = (artwork: Artwork) => {
         <div class="mt-8 grid grid-cols-3 gap-3 border-t border-ink/10 pt-5 text-xs font-bold text-ink/45">
           <span>策展人<br><b class="mt-1 block text-sm text-ink">{{ exhibition.curator_name }}</b></span>
           <span>状态<br><b class="mt-1 block text-sm text-ink">{{ exhibitionStatusLabel[exhibition.status] }}</b></span>
-          <span>作品数<br><b class="mt-1 block text-sm text-ink">{{ exhibition.artwork_ids.length }}</b></span>
+          <span>作品数<br><b class="mt-1 block text-sm text-ink">{{ exhibitionArtworkCount }}</b></span>
         </div>
       </div>
     </section>
@@ -243,16 +276,36 @@ const detachArtwork = (artwork: Artwork) => {
       </div>
 
       <div class="panel studio-grid px-4 py-5 md:px-6">
-        <p class="section-kicker">学生作品库</p>
-        <div class="mt-6 grid gap-4 md:grid-cols-2">
-          <article v-for="artwork in remainingArtworks" :key="artwork.id" class="overflow-hidden rounded-[1.1rem] border border-ink/10 bg-white/78 shadow-soft">
-            <img :src="artwork.thumbnail_url || artwork.image_url" :alt="artwork.title" loading="lazy" decoding="async" class="aspect-[4/5] w-full object-cover">
-            <div class="space-y-3 px-4 py-4">
-              <h3 class="font-display text-2xl leading-tight">{{ artwork.title }}</h3>
-              <button class="button-secondary w-full" @click="attachArtwork(artwork)">加入展览</button>
-            </div>
-          </article>
+        <div class="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p class="section-kicker">学生作品库</p>
+            <p class="mt-2 text-xs font-bold text-ink/45">{{ curationSummary }}</p>
+          </div>
+          <span class="rounded-full border border-ink/10 bg-white/70 px-3 py-1 text-xs font-extrabold text-ink/55">
+            可选 {{ selectableArtworkCount }} 件
+          </span>
         </div>
+        <div v-if="remainingArtworks.length" class="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8">
+          <button
+            v-for="artwork in remainingArtworks"
+            :key="artwork.id"
+            type="button"
+            class="group overflow-hidden rounded-lg border border-ink/10 bg-white/82 text-left shadow-soft transition hover:-translate-y-0.5 hover:border-ember/55 focus:outline-none focus:ring-2 focus:ring-ember/40"
+            :title="`加入 ${artwork.title}`"
+            @click="attachArtwork(artwork)"
+          >
+            <img :src="artwork.thumbnail_url || artwork.image_url" :alt="artwork.title" loading="lazy" decoding="async" class="aspect-square w-full object-cover transition duration-200 group-hover:scale-[1.03]">
+            <div class="px-2 py-2">
+              <p class="truncate text-xs font-extrabold text-ink">{{ artwork.title }}</p>
+              <p class="mt-0.5 truncate text-[0.68rem] font-bold text-ink/45">{{ artwork.owner_name }}</p>
+            </div>
+          </button>
+        </div>
+        <EmptyState
+          v-else
+          title="当前加载的作品都已加入展览"
+          description="可以继续加载更多作品，或在左侧保存当前策展结果。"
+        />
         <div v-if="hasMoreCuration" class="mt-6 flex justify-center">
           <button class="button-secondary" :disabled="curationBusy" @click="loadCurationArtworks()">
             {{ curationBusy ? '加载中...' : '加载更多可选作品' }}
