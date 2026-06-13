@@ -29,8 +29,8 @@ function useLocalState() {
 
 async function fetchProfilesMap(ids: string[]) {
   const supabase = useSupabaseAdmin()
-  const { data } = await supabase.from('profiles').select('*').in('id', ids)
-  return new Map((data || []).map((item: Profile) => [item.id, item]))
+  const { data } = await supabase.from('profiles').select('id,name').in('id', ids)
+  return new Map((data || []).map((item) => [item.id as string, item.name as string]))
 }
 
 async function fetchArtworkById(id: string) {
@@ -42,7 +42,7 @@ async function fetchArtworkById(id: string) {
   }
 
   const profiles = await fetchProfilesMap([data.owner_id as string])
-  return toArtworkRecord(data, profiles.get(data.owner_id as string)?.name || 'Unknown')
+  return toArtworkRecord(data, profiles.get(data.owner_id as string) || 'Unknown')
 }
 
 async function fetchExhibitionArtworkIds(id: string) {
@@ -93,6 +93,7 @@ function toExhibitionRecord(row: Record<string, unknown>, curatorName = 'Unknown
 
 interface ListOptions {
   limit?: number
+  offset?: number
 }
 
 export async function listArtworks(scope: 'public' | 'mine', viewer?: Profile | null, options: ListOptions = {}) {
@@ -102,14 +103,16 @@ export async function listArtworks(scope: 'public' | 'mine', viewer?: Profile | 
       ? state.artworks.filter((item) => item.owner_id === viewer.id)
       : state.artworks.filter((item) => item.visibility === 'public')
     const sorted = sortByDateDescending(artworks)
-    return options.limit ? sorted.slice(0, options.limit) : sorted
+    const start = options.offset ?? 0
+    return options.limit ? sorted.slice(start, start + options.limit) : sorted.slice(start)
   }
 
   const supabase = useSupabaseAdmin()
   let query = supabase.from('artworks').select('*')
   query = scope === 'mine' && viewer ? query.eq('owner_id', viewer.id) : query.eq('visibility', 'public')
   if (options.limit) {
-    query = query.limit(options.limit)
+    const start = options.offset ?? 0
+    query = query.range(start, start + options.limit - 1)
   }
 
   const { data, error } = await query.order('created_at', { ascending: false })
@@ -120,7 +123,7 @@ export async function listArtworks(scope: 'public' | 'mine', viewer?: Profile | 
   const ownerIds = [...new Set((data || []).map((row) => row.owner_id as string))]
   const profiles = ownerIds.length ? await fetchProfilesMap(ownerIds) : new Map()
 
-  return (data || []).map((row) => toArtworkRecord(row, profiles.get(row.owner_id as string)?.name || 'Unknown'))
+  return (data || []).map((row) => toArtworkRecord(row, profiles.get(row.owner_id as string) || 'Unknown'))
 }
 
 export async function createArtworkEntry(
@@ -232,18 +235,24 @@ export async function deleteArtworkEntry(id: string, viewer: Profile) {
   return { success: true }
 }
 
-export async function listExhibitions(scope: 'public' | 'mine', viewer?: Profile | null) {
+export async function listExhibitions(scope: 'public' | 'mine', viewer?: Profile | null, options: ListOptions = {}) {
   if (!isSupabaseConfigured()) {
     const state = useLocalState()
     const exhibitions = scope === 'mine' && viewer
       ? state.exhibitions.filter((item) => item.curator_id === viewer.id || viewer.role === 'admin')
       : state.exhibitions.filter((item) => item.status === 'published')
-    return sortByDateDescending(exhibitions)
+    const sorted = sortByDateDescending(exhibitions)
+    const start = options.offset ?? 0
+    return options.limit ? sorted.slice(start, start + options.limit) : sorted.slice(start)
   }
 
   const supabase = useSupabaseAdmin()
   let query = supabase.from('exhibitions').select('*')
   query = scope === 'mine' && viewer ? query.eq('curator_id', viewer.id) : query.eq('status', 'published')
+  if (options.limit) {
+    const start = options.offset ?? 0
+    query = query.range(start, start + options.limit - 1)
+  }
 
   const { data, error } = await query.order('created_at', { ascending: false })
   if (error) {
@@ -261,7 +270,7 @@ export async function listExhibitions(scope: 'public' | 'mine', viewer?: Profile
   return (data || []).map((row) =>
     toExhibitionRecord(
       row,
-      profiles.get(row.curator_id as string)?.name || 'Unknown',
+      profiles.get(row.curator_id as string) || 'Unknown',
       (junctions || []).filter((link) => link.exhibition_id === row.id).map((link) => link.artwork_id)
     )
   )
@@ -290,7 +299,7 @@ export async function getExhibitionById(id: string, viewer?: Profile | null) {
 
   const exhibition = toExhibitionRecord(
     data,
-    (await fetchProfilesMap([data.curator_id as string])).get(data.curator_id as string)?.name || 'Unknown',
+    (await fetchProfilesMap([data.curator_id as string])).get(data.curator_id as string) || 'Unknown',
     await fetchExhibitionArtworkIds(id)
   )
 

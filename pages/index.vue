@@ -2,15 +2,23 @@
 import type { Artwork, Exhibition, AppBootstrap } from '~/shared/types'
 
 const selectedArtwork = ref<Artwork | null>(null)
-const artworkDisplayCount = ref(12)
-const exhibitionDisplayCount = ref(6)
+const artworkPageSize = 24
+const exhibitionPageSize = 6
+const artworks = ref<Artwork[]>([])
+const exhibitions = ref<Exhibition[]>([])
+const artworkBusy = ref(false)
+const exhibitionBusy = ref(false)
+const hasMoreArtworks = ref(false)
+const hasMoreExhibitions = ref(false)
 
-const { data: bootstrap, refresh } = await useAsyncData('bootstrap', () => $fetch<AppBootstrap>('/api/bootstrap'))
+const { data: bootstrap } = await useAsyncData('bootstrap', () => $fetch<AppBootstrap>('/api/bootstrap'))
 
-const artworks = computed(() => bootstrap.value?.artworks ?? [])
-const exhibitions = computed(() => bootstrap.value?.exhibitions ?? [])
-const visibleArtworks = computed(() => artworks.value.slice(0, artworkDisplayCount.value))
-const visibleExhibitions = computed(() => exhibitions.value.slice(0, exhibitionDisplayCount.value))
+watch(bootstrap, (value) => {
+  artworks.value = value?.artworks ?? []
+  exhibitions.value = value?.exhibitions ?? []
+  hasMoreArtworks.value = artworks.value.length === artworkPageSize
+  hasMoreExhibitions.value = exhibitions.value.length === exhibitionPageSize
+}, { immediate: true })
 
 watch(() => bootstrap.value?.me, (profile) => {
   if (profile) {
@@ -24,6 +32,46 @@ const spotlightImage = computed(() => spotlight.value?.thumbnail_url || spotligh
 
 const onSelectArtwork = (artwork: Artwork) => {
   selectedArtwork.value = artwork
+}
+
+const loadMoreArtworks = async () => {
+  if (artworkBusy.value || !hasMoreArtworks.value) {
+    return
+  }
+
+  artworkBusy.value = true
+  try {
+    const next = await $fetch<Artwork[]>('/api/artworks', {
+      query: {
+        limit: artworkPageSize,
+        offset: artworks.value.length
+      }
+    })
+    artworks.value = [...artworks.value, ...next]
+    hasMoreArtworks.value = next.length === artworkPageSize
+  } finally {
+    artworkBusy.value = false
+  }
+}
+
+const loadMoreExhibitions = async () => {
+  if (exhibitionBusy.value || !hasMoreExhibitions.value) {
+    return
+  }
+
+  exhibitionBusy.value = true
+  try {
+    const next = await $fetch<Exhibition[]>('/api/exhibitions', {
+      query: {
+        limit: exhibitionPageSize,
+        offset: exhibitions.value.length
+      }
+    })
+    exhibitions.value = [...exhibitions.value, ...next]
+    hasMoreExhibitions.value = next.length === exhibitionPageSize
+  } finally {
+    exhibitionBusy.value = false
+  }
 }
 </script>
 
@@ -47,11 +95,11 @@ const onSelectArtwork = (artwork: Artwork) => {
 
         <div class="mt-10 grid grid-cols-3 gap-3">
           <div class="border-l border-ink/15 pl-4">
-            <p class="font-display text-4xl">{{ artworks.length }}</p>
+            <p class="font-display text-4xl">{{ artworks.length }}{{ hasMoreArtworks ? '+' : '' }}</p>
             <p class="mt-1 text-xs font-bold text-ink/45">公开作品</p>
           </div>
           <div class="border-l border-ink/15 pl-4">
-            <p class="font-display text-4xl">{{ exhibitions.length }}</p>
+            <p class="font-display text-4xl">{{ exhibitions.length }}{{ hasMoreExhibitions ? '+' : '' }}</p>
             <p class="mt-1 text-xs font-bold text-ink/45">发布展览</p>
           </div>
           <div class="border-l border-ink/15 pl-4">
@@ -103,15 +151,15 @@ const onSelectArtwork = (artwork: Artwork) => {
       />
       <div v-if="artworks.length" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         <ArtworkCard
-          v-for="artwork in visibleArtworks"
+          v-for="artwork in artworks"
           :key="artwork.id"
           :artwork="artwork"
           @select="onSelectArtwork"
         />
       </div>
-      <div v-if="visibleArtworks.length < artworks.length" class="flex justify-center">
-        <button class="button-secondary" @click="artworkDisplayCount += 12">
-          加载更多作品
+      <div v-if="hasMoreArtworks" class="flex justify-center">
+        <button class="button-secondary" :disabled="artworkBusy" @click="loadMoreArtworks">
+          {{ artworkBusy ? '加载中...' : '加载更多作品' }}
         </button>
       </div>
       <EmptyState
@@ -129,14 +177,14 @@ const onSelectArtwork = (artwork: Artwork) => {
       />
       <div v-if="exhibitions.length" class="grid gap-5">
         <ExhibitionCard
-          v-for="exhibition in visibleExhibitions"
+          v-for="exhibition in exhibitions"
           :key="exhibition.id"
           :exhibition="exhibition"
         />
       </div>
-      <div v-if="visibleExhibitions.length < exhibitions.length" class="flex justify-center">
-        <button class="button-secondary" @click="exhibitionDisplayCount += 6">
-          加载更多展览
+      <div v-if="hasMoreExhibitions" class="flex justify-center">
+        <button class="button-secondary" :disabled="exhibitionBusy" @click="loadMoreExhibitions">
+          {{ exhibitionBusy ? '加载中...' : '加载更多展览' }}
         </button>
       </div>
       <EmptyState
