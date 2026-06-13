@@ -36,7 +36,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const viewer = await getOptionalProfile(event)
-  if (scope === 'public') {
+  if (scope === 'public' && random) {
+    setHeader(event, 'Cache-Control', 'no-store')
+  } else if (scope === 'public') {
     setHeader(event, 'Cache-Control', 'public, s-maxage=30, stale-while-revalidate=120')
   }
   return await listArtworks(scope, viewer, { excludeIds, ids, limit, offset, random, sourceType, visibility })
