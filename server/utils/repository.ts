@@ -411,7 +411,11 @@ export async function listExhibitions(scope: 'public' | 'mine', viewer?: Profile
 
   const supabase = useSupabaseAdmin()
   let query = supabase.from('exhibitions').select('*')
-  query = scope === 'mine' && viewer ? query.eq('curator_id', viewer.id) : query.eq('status', 'published')
+  if (scope === 'mine' && viewer?.role === 'admin') {
+    query = query
+  } else {
+    query = scope === 'mine' && viewer ? query.eq('curator_id', viewer.id) : query.eq('status', 'published')
+  }
   if (options.limit) {
     const start = options.offset ?? 0
     query = query.range(start, start + options.limit - 1)

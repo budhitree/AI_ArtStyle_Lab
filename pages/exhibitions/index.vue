@@ -45,29 +45,33 @@ const loadPublic = async (reset = false) => {
 }
 
 const loadMine = async (reset = false) => {
-  if (auth.isAuthenticated && ['teacher', 'admin'].includes(auth.role || '')) {
-    if (myBusy.value) {
-      return
+  if (!auth.isAuthenticated || !['teacher', 'admin'].includes(auth.role || '')) {
+    myExhibitions.value = []
+    hasMoreMine.value = false
+    return
+  }
+
+  if (myBusy.value) {
+    return
+  }
+
+  myBusy.value = true
+  try {
+    if (reset) {
+      myExhibitions.value = []
     }
 
-    myBusy.value = true
-    try {
-      if (reset) {
-        myExhibitions.value = []
+    const next = await request<Exhibition[]>('/api/exhibitions', {
+      query: {
+        scope: 'mine',
+        limit: myPageSize + 1,
+        offset: myExhibitions.value.length
       }
-
-      const next = await request<Exhibition[]>('/api/exhibitions', {
-        query: {
-          scope: 'mine',
-          limit: myPageSize + 1,
-          offset: myExhibitions.value.length
-        }
-      })
-      myExhibitions.value = [...myExhibitions.value, ...next.slice(0, myPageSize)]
-      hasMoreMine.value = next.length > myPageSize
-    } finally {
-      myBusy.value = false
-    }
+    })
+    myExhibitions.value = [...myExhibitions.value, ...next.slice(0, myPageSize)]
+    hasMoreMine.value = next.length > myPageSize
+  } finally {
+    myBusy.value = false
   }
 }
 
@@ -76,6 +80,21 @@ const load = async () => {
 }
 
 await callOnce(load)
+
+if (import.meta.client) {
+  onMounted(async () => {
+    if (!auth.initialized) {
+      await auth.initialize()
+    }
+    await loadMine(true)
+  })
+}
+
+watch(() => auth.profile?.id, () => {
+  if (import.meta.client) {
+    loadMine(true)
+  }
+})
 
 const createExhibition = async () => {
   try {

@@ -8,6 +8,8 @@ const { request } = useApi()
 
 const selectedArtwork = ref<Artwork | null>(null)
 const status = ref('')
+const pageStatus = ref('')
+const pageBusy = ref(true)
 const exhibition = ref<Exhibition | null>(null)
 const availableArtworks = ref<Artwork[]>([])
 const curationArtworks = ref<Artwork[]>([])
@@ -71,12 +73,43 @@ const loadCurationArtworks = async (reset = false) => {
 }
 
 const load = async () => {
-  exhibition.value = await request<Exhibition>(`/api/exhibitions/${route.params.id}`)
-  availableArtworks.value = []
-  await Promise.all([loadExhibitionArtworks(), loadCurationArtworks(true)])
+  pageBusy.value = true
+  pageStatus.value = ''
+  try {
+    if (import.meta.client && !auth.initialized) {
+      await auth.initialize()
+    }
+
+    exhibition.value = await request<Exhibition>(`/api/exhibitions/${route.params.id}`)
+    availableArtworks.value = []
+    curationArtworks.value = []
+    hasMoreCuration.value = false
+    await Promise.all([loadExhibitionArtworks(), loadCurationArtworks(true)])
+  } catch (error) {
+    exhibition.value = null
+    availableArtworks.value = []
+    curationArtworks.value = []
+    pageStatus.value = error instanceof Error ? error.message : '展览加载失败'
+  } finally {
+    pageBusy.value = false
+  }
 }
 
-await callOnce(load)
+if (import.meta.client) {
+  onMounted(load)
+}
+
+watch(() => route.params.id, () => {
+  if (import.meta.client) {
+    load()
+  }
+})
+
+watch(() => auth.profile?.id, () => {
+  if (import.meta.client) {
+    load()
+  }
+})
 
 const exhibitionArtworks = computed(() => {
   if (!exhibition.value) {
@@ -140,6 +173,16 @@ const detachArtwork = (artwork: Artwork) => {
 
 <template>
   <div class="shell space-y-12">
+    <div v-if="pageBusy" class="panel px-6 py-10 text-center">
+      <p class="section-kicker">策展加载中</p>
+      <p class="mt-3 text-sm font-semibold text-ink/60">正在读取展览和作品库...</p>
+    </div>
+    <EmptyState
+      v-else-if="pageStatus"
+      title="展览暂时无法打开"
+      :description="pageStatus"
+    />
+
     <section v-if="exhibition" class="grid gap-5 xl:grid-cols-[1.08fr_0.92fr]">
       <div class="relative overflow-hidden rounded-[1.35rem] border border-ink/10 bg-ink shadow-card">
         <img :src="exhibition.cover_image_url || '/images/hero.png'" :alt="exhibition.title" decoding="async" class="h-full min-h-[30rem] w-full object-cover opacity-[0.92]">
