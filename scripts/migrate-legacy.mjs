@@ -63,6 +63,15 @@ function normalizeSourceType(value) {
   return value === 1 || value === true ? 'ai' : 'upload'
 }
 
+function normalizeArtworkDescription(value) {
+  const description = typeof value === 'string' ? value.trim() : ''
+  if (!description || description === 'Student Submission') {
+    return '学生上传作品'
+  }
+
+  return description
+}
+
 function toIsoDate(value) {
   const parsed = value ? new Date(value) : new Date()
   return Number.isNaN(parsed.getTime()) ? new Date().toISOString() : parsed.toISOString()
@@ -385,7 +394,7 @@ for (const [index, artwork] of artworks.entries()) {
   uploadedArtworkRows.push({
     id: artworkId,
     title: artwork.title || 'Untitled artwork',
-    description: artwork.desc || '',
+    description: normalizeArtworkDescription(artwork.desc),
     prompt: artwork.prompt || null,
     image_url: imageUrl,
     thumbnail_url: thumbnailUrl,

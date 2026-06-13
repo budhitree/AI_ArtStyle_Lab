@@ -151,7 +151,7 @@ onBeforeUnmount(() => {
   <div class="shell grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
     <section class="panel px-6 py-8 md:px-8">
       <SectionTitle
-        kicker="Upload Artwork"
+        kicker="上传作品"
         title="把课堂作品收进同一面作品墙。"
         description="上传页负责作品元信息、公开状态和图片存储，让手工创作与 AI 生成作品进入同一个管理流程。"
       />
@@ -194,7 +194,7 @@ onBeforeUnmount(() => {
     <section class="panel studio-grid flex min-h-[40rem] items-center justify-center px-4 py-4 md:px-6 md:py-6">
       <div v-if="preview" class="w-full space-y-4">
         <div class="art-frame bg-white p-2">
-          <img :src="preview" alt="Artwork preview" decoding="async" class="max-h-[36rem] w-full rounded-xl object-contain">
+          <img :src="preview" alt="作品上传预览" decoding="async" class="max-h-[36rem] w-full rounded-xl object-contain">
         </div>
         <p class="rounded-xl bg-white/70 px-4 py-3 text-sm text-ink/55">预览仅用于确认上传内容，最终公开状态由保存时的表单决定。</p>
       </div>

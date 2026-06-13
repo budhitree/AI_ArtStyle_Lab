@@ -55,11 +55,11 @@ export default defineNuxtConfig({
             body: ['Inter', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif']
           },
           colors: {
-            canvas: '#f3eee4',
+            canvas: '#f5f6f2',
             ink: '#141210',
             ember: '#9a3d27',
             bronze: '#9b7a50',
-            mist: '#fbf8f1',
+            mist: '#fbfbf8',
             forest: '#2b4b3f'
           },
           boxShadow: {

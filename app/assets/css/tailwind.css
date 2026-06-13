@@ -5,7 +5,7 @@
 @layer base {
   :root {
     color-scheme: light;
-    background: #f3eee4;
+    background: #f5f6f2;
   }
 
   html {
@@ -15,12 +15,10 @@
   body {
     @apply bg-canvas font-body text-ink antialiased;
     background-image:
-      linear-gradient(rgba(20, 18, 16, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(20, 18, 16, 0.025) 1px, transparent 1px),
-      radial-gradient(circle at 12% 4%, rgba(154, 61, 39, 0.13), transparent 25rem),
-      radial-gradient(circle at 88% 8%, rgba(43, 75, 63, 0.12), transparent 22rem),
-      linear-gradient(180deg, #fbf8f1 0%, #f3eee4 42%, #e9e0d1 100%);
-    background-size: 34px 34px, 34px 34px, auto, auto, auto;
+      linear-gradient(rgba(20, 18, 16, 0.032) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(20, 18, 16, 0.024) 1px, transparent 1px),
+      linear-gradient(180deg, #fbfbf8 0%, #f5f6f2 52%, #ecefe7 100%);
+    background-size: 34px 34px, 34px 34px, auto;
   }
 
   * {

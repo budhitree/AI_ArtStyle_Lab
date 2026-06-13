@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Artwork } from '~/shared/types'
+import { sourceTypeLabel } from '~/shared/labels'
 
 const props = defineProps<{
   artwork: Artwork | null
@@ -36,7 +37,7 @@ onBeforeUnmount(() => {
         <div class="rounded-[1.25rem] bg-mist px-6 py-7 shadow-2xl">
           <div class="mb-6 flex items-start justify-between gap-4">
             <div>
-              <p class="section-kicker">Artwork Detail</p>
+              <p class="section-kicker">作品详情</p>
               <h3 class="mt-3 font-display text-4xl leading-none">{{ artwork.title }}</h3>
             </div>
             <button class="button-secondary px-4" @click="emit('close')">关闭</button>
@@ -50,7 +51,7 @@ onBeforeUnmount(() => {
               </div>
               <div>
                 <p class="field-label">来源</p>
-                <p class="mt-1 text-base font-semibold text-ink">{{ artwork.source_type }}</p>
+                <p class="mt-1 text-base font-semibold text-ink">{{ sourceTypeLabel[artwork.source_type] }}</p>
               </div>
               <div v-if="artwork.prompt">
                 <p class="field-label">Prompt</p>

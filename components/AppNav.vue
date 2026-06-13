@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Profile } from '~/shared/types'
+import { roleLabel } from '~/shared/labels'
 
 const props = defineProps<{
   profile: Profile | null
@@ -31,7 +32,7 @@ watch(() => route.path, () => {
           <div class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-ink font-display text-lg text-white shadow-soft">AI</div>
           <div>
             <p class="font-display text-2xl leading-none">ArtStyle Lab</p>
-            <p class="mt-1 hidden text-[0.65rem] font-bold uppercase tracking-[0.24em] text-ink/45 sm:block">Campus art studio</p>
+            <p class="mt-1 hidden text-[0.65rem] font-bold text-ink/45 sm:block">校园艺术创作平台</p>
           </div>
         </NuxtLink>
 
@@ -50,7 +51,7 @@ watch(() => route.path, () => {
         <div class="flex items-center gap-3">
           <div v-if="props.profile" class="hidden text-right xl:block">
             <p class="text-sm font-semibold">{{ props.profile.name }}</p>
-            <p class="text-[0.65rem] font-bold uppercase tracking-[0.22em] text-ink/45">{{ props.profile.role }}</p>
+            <p class="text-[0.65rem] font-bold text-ink/45">{{ roleLabel[props.profile.role] }}</p>
           </div>
           <button
             v-if="props.profile"
@@ -83,7 +84,7 @@ watch(() => route.path, () => {
           <div class="flex items-center justify-between gap-3 rounded-xl bg-white/65 px-4 py-3">
             <div v-if="props.profile">
               <p class="text-sm font-bold">{{ props.profile.name }}</p>
-              <p class="text-xs uppercase tracking-[0.2em] text-ink/45">{{ props.profile.role }}</p>
+              <p class="text-xs text-ink/45">{{ roleLabel[props.profile.role] }}</p>
             </div>
             <p v-else class="text-sm font-bold text-ink/65">未登录</p>
             <button v-if="props.profile" class="button-secondary px-4 py-2" @click="auth.signOut()">退出</button>

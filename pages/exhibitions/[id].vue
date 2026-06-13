@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Artwork, Exhibition } from '~/shared/types'
+import { exhibitionStatusLabel } from '~/shared/labels'
 
 const route = useRoute()
 const auth = useAuthStore()
@@ -99,26 +100,26 @@ const detachArtwork = (artwork: Artwork) => {
       <div class="relative overflow-hidden rounded-[1.35rem] border border-ink/10 bg-ink shadow-card">
         <img :src="exhibition.cover_image_url || '/images/hero.png'" :alt="exhibition.title" decoding="async" class="h-full min-h-[30rem] w-full object-cover opacity-[0.92]">
         <div class="absolute left-5 top-5 rounded-full px-3 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.18em] text-white backdrop-blur" :class="exhibition.status === 'published' ? 'bg-forest/85' : 'bg-ember/85'">
-          {{ exhibition.status }}
+          {{ exhibitionStatusLabel[exhibition.status] }}
         </div>
       </div>
       <div class="flex flex-col justify-between border-y border-ink/10 py-8 md:py-10">
-        <p class="section-kicker">Exhibition Detail</p>
+        <p class="section-kicker">展览详情</p>
         <div>
           <h1 class="mt-4 font-display text-5xl leading-none md:text-6xl">{{ exhibition.title }}</h1>
           <p class="mt-6 text-lg leading-8 text-ink/64">{{ exhibition.description }}</p>
         </div>
-        <div class="mt-8 grid grid-cols-3 gap-3 border-t border-ink/10 pt-5 text-xs font-bold uppercase tracking-[0.18em] text-ink/45">
-          <span>Curator<br><b class="mt-1 block text-sm normal-case tracking-normal text-ink">{{ exhibition.curator_name }}</b></span>
-          <span>Status<br><b class="mt-1 block text-sm normal-case tracking-normal text-ink">{{ exhibition.status }}</b></span>
-          <span>Works<br><b class="mt-1 block text-sm normal-case tracking-normal text-ink">{{ exhibition.artwork_ids.length }}</b></span>
+        <div class="mt-8 grid grid-cols-3 gap-3 border-t border-ink/10 pt-5 text-xs font-bold text-ink/45">
+          <span>策展人<br><b class="mt-1 block text-sm text-ink">{{ exhibition.curator_name }}</b></span>
+          <span>状态<br><b class="mt-1 block text-sm text-ink">{{ exhibitionStatusLabel[exhibition.status] }}</b></span>
+          <span>作品数<br><b class="mt-1 block text-sm text-ink">{{ exhibition.artwork_ids.length }}</b></span>
         </div>
       </div>
     </section>
 
     <section v-if="exhibition" class="space-y-6">
       <SectionTitle
-        kicker="Artwork Lineup"
+        kicker="展览作品"
         title="展览作品"
         description="公开访客可以直接浏览已加入展览的作品；策展人可继续调整挂画顺序和作品集合。"
       />
@@ -139,12 +140,12 @@ const detachArtwork = (artwork: Artwork) => {
 
     <section v-if="exhibition && canEdit" class="grid gap-6 xl:grid-cols-[0.82fr_1.18fr]">
       <div class="panel sticky top-32 self-start px-6 py-8 md:px-8">
-        <p class="section-kicker">Curation Controls</p>
+        <p class="section-kicker">策展管理</p>
         <h2 class="mt-3 font-display text-4xl leading-none">策展控制台</h2>
         <div class="mt-6 grid gap-4">
           <input v-model="exhibition.title" class="field-input" type="text">
           <textarea v-model="exhibition.description" class="field-input min-h-24" />
-          <input v-model="exhibition.cover_image_url" class="field-input" type="text">
+          <input v-model="exhibition.cover_image_url" class="field-input" type="text" placeholder="封面图片地址，可留空">
         </div>
         <div class="mt-6 flex flex-wrap gap-3">
           <button class="button-primary" @click="save">保存修改</button>
@@ -155,7 +156,7 @@ const detachArtwork = (artwork: Artwork) => {
       </div>
 
       <div class="panel studio-grid px-4 py-5 md:px-6">
-        <p class="section-kicker">Artwork Pool</p>
+        <p class="section-kicker">可选作品</p>
         <div class="mt-6 grid gap-4 md:grid-cols-2">
           <article v-for="artwork in remainingArtworks" :key="artwork.id" class="overflow-hidden rounded-[1.1rem] border border-ink/10 bg-white/78 shadow-soft">
             <img :src="artwork.thumbnail_url || artwork.image_url" :alt="artwork.title" loading="lazy" decoding="async" class="aspect-[4/5] w-full object-cover">

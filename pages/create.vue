@@ -77,7 +77,7 @@ const downloadSelected = async () => {
   <div class="shell grid gap-6 xl:grid-cols-[0.82fr_1.18fr]">
     <section class="panel px-6 py-8 md:px-8">
       <SectionTitle
-        kicker="AI Studio"
+        kicker="AI 创作"
         title="把想法拆成可生成的视觉线索。"
         description="主体、背景、风格和补充说明会被重新拼装成更适合生成的 Prompt，结果可以下载或直接进入作品库。"
       />
@@ -129,7 +129,7 @@ const downloadSelected = async () => {
     <section class="panel studio-grid min-h-[42rem] px-4 py-4 md:px-6 md:py-6">
       <div class="mb-5 flex flex-col gap-3 border-b border-ink/10 pb-5 md:flex-row md:items-center md:justify-between">
         <div>
-          <p class="section-kicker">Generation wall</p>
+          <p class="section-kicker">生成结果</p>
           <h2 class="mt-2 font-display text-4xl">生成结果</h2>
         </div>
         <p class="max-w-sm text-sm leading-6 text-ink/50">点击作品确定当前选择，再下载或保存到作品库。</p>
@@ -151,7 +151,7 @@ const downloadSelected = async () => {
       <EmptyState
         v-else
         title="生成结果会出现在这里"
-        description="连接好火山引擎后会返回真实生成结果；未配置时会用 demo 图像演示完整流程。"
+        description="提交生成后，系统会在这里展示可下载或保存入库的图片。"
       />
     </section>
   </div>

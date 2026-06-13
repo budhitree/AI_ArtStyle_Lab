@@ -1,10 +1,9 @@
 <script setup lang="ts">
-import type { AuthPayload, UserRole } from '~/shared/types'
+import type { AuthPayload } from '~/shared/types'
 
 const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
-const { isDemoMode } = useRuntimeMode()
 
 const mode = ref<'login' | 'register'>('login')
 const form = reactive<AuthPayload>({
@@ -33,41 +32,26 @@ const submit = async () => {
   }
 }
 
-const fillDemo = (role: UserRole) => {
-  form.email = `${role}@artstyle.lab`
-  form.password = 'demo-password'
-  form.role = role
-  form.name = role === 'student' ? '沈知遥' : role === 'teacher' ? '林策' : '馆务管理员'
-}
 </script>
 
 <template>
   <div class="shell grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
     <section class="panel studio-grid px-6 py-8 md:px-10 md:py-10">
-      <p class="section-kicker">Authentication</p>
+      <p class="section-kicker">账号入口</p>
       <h1 class="mt-4 font-display text-5xl leading-none">进入校园艺术实验室</h1>
       <p class="mt-5 max-w-xl text-base leading-8 text-ink/64">
-        正式环境使用 Supabase Auth。若当前未配置 Supabase，会自动进入 demo 回退模式，方便先预览完整站点和业务流。
+        学生和教师可以在这里进入个人作品库、上传作品、参与 AI 创作与主题展览管理。
       </p>
 
-      <div class="mt-8 grid gap-3 md:grid-cols-3">
-        <button class="rounded-[1rem] border border-ink/10 bg-white/72 px-4 py-5 text-left shadow-soft transition hover:-translate-y-0.5 hover:bg-white" @click="fillDemo('student')">
-          <span class="section-kicker">Student</span>
-          <span class="mt-3 block font-display text-2xl">Demo 学生</span>
-        </button>
-        <button class="rounded-[1rem] border border-ink/10 bg-white/72 px-4 py-5 text-left shadow-soft transition hover:-translate-y-0.5 hover:bg-white" @click="fillDemo('teacher')">
-          <span class="section-kicker">Teacher</span>
-          <span class="mt-3 block font-display text-2xl">Demo 教师</span>
-        </button>
-        <button class="rounded-[1rem] border border-ink/10 bg-white/72 px-4 py-5 text-left shadow-soft transition hover:-translate-y-0.5 hover:bg-white" @click="fillDemo('admin')">
-          <span class="section-kicker">Admin</span>
-          <span class="mt-3 block font-display text-2xl">Demo 管理员</span>
-        </button>
-      </div>
-
-      <div class="mt-8 rounded-[1rem] border border-ink/10 bg-white/60 px-5 py-5 text-sm leading-7 text-ink/64">
-        <p class="font-semibold text-ink">当前模式：{{ isDemoMode ? 'Demo 回退' : 'Supabase 正式连接' }}</p>
-        <p class="mt-2">如果你现在只想先看站点结构，直接点击上面的 demo 快捷入口即可。</p>
+      <div class="mt-8 grid gap-4 rounded-[1rem] border border-ink/10 bg-white/64 px-5 py-5 text-sm leading-7 text-ink/64">
+        <div>
+          <p class="font-semibold text-ink">旧账号可直接登录</p>
+          <p class="mt-1">原系统里的学号、教师账号或管理员账号可以继续使用，密码保持不变。</p>
+        </div>
+        <div>
+          <p class="font-semibold text-ink">新用户默认学生身份</p>
+          <p class="mt-1">注册后会进入学生作品空间；教师和管理员权限由后台统一维护。</p>
+        </div>
       </div>
     </section>
 

@@ -22,11 +22,10 @@ export const generateAiImages = async (payload: AiGeneratePayload): Promise<AiRe
   const config = useRuntimeConfig()
 
   if (!config.volcApiKey || !config.volcSeedreamEndpoint) {
-    return [
-      { id: 'demo-ai-1', url: '/images/hero.png', prompt },
-      { id: 'demo-ai-2', url: '/images/art1.png', prompt },
-      { id: 'demo-ai-3', url: '/images/art2.png', prompt }
-    ]
+    throw createError({
+      statusCode: 503,
+      statusMessage: 'AI 图像生成服务尚未配置，请联系管理员。'
+    })
   }
 
   const response = await fetch(config.volcApiBase, {

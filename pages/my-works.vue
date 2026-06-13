@@ -4,6 +4,7 @@ definePageMeta({
 })
 
 import type { Artwork } from '~/shared/types'
+import { sourceTypeLabel, visibilityLabel } from '~/shared/labels'
 
 const { request } = useApi()
 const artworks = ref<Artwork[]>([])
@@ -11,6 +12,13 @@ const selectedArtwork = ref<Artwork | null>(null)
 const status = ref('')
 const filter = ref<'all' | 'public' | 'private' | 'ai' | 'upload'>('all')
 const displayCount = ref(12)
+const filterOptions = [
+  { value: 'all', label: '全部' },
+  { value: 'public', label: '公开' },
+  { value: 'private', label: '仅自己可见' },
+  { value: 'ai', label: 'AI 创作' },
+  { value: 'upload', label: '上传作品' }
+] as const
 
 const load = async () => {
   artworks.value = await request<Artwork[]>('/api/artworks?scope=mine')
@@ -78,20 +86,20 @@ const editArtwork = (artwork: Artwork) => {
   <div class="shell grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
     <section class="space-y-6">
       <SectionTitle
-        kicker="My Collection"
+        kicker="我的作品"
         title="整理自己的作品墙。"
         description="这里统一承接 AI 生成和手工上传的作品。公开状态会直接影响首页和展览里的可见性。"
       />
 
       <div class="flex flex-wrap gap-2 border-y border-ink/10 py-3">
         <button
-          v-for="item in ['all', 'public', 'private', 'ai', 'upload']"
-          :key="item"
+          v-for="item in filterOptions"
+          :key="item.value"
           class="rounded-full px-4 py-2 text-sm font-extrabold transition"
-          :class="filter === item ? 'bg-ink text-white shadow-soft' : 'bg-white/70 text-ink/62 hover:bg-white'"
-          @click="filter = item as typeof filter"
+          :class="filter === item.value ? 'bg-ink text-white shadow-soft' : 'bg-white/70 text-ink/62 hover:bg-white'"
+          @click="filter = item.value"
         >
-          {{ item }}
+          {{ item.label }}
         </button>
       </div>
 
@@ -104,8 +112,8 @@ const editArtwork = (artwork: Artwork) => {
           <div class="relative">
             <img :src="artwork.thumbnail_url || artwork.image_url" :alt="artwork.title" loading="lazy" decoding="async" class="aspect-[4/5] w-full object-cover">
             <div class="absolute left-3 top-3 flex flex-wrap gap-2">
-              <span class="status-pill bg-white/82">{{ artwork.visibility }}</span>
-              <span class="status-pill bg-white/82">{{ artwork.source_type }}</span>
+              <span class="status-pill bg-white/82">{{ visibilityLabel[artwork.visibility] }}</span>
+              <span class="status-pill bg-white/82">{{ sourceTypeLabel[artwork.source_type] }}</span>
             </div>
           </div>
           <div class="space-y-4 px-5 py-5">
@@ -134,7 +142,7 @@ const editArtwork = (artwork: Artwork) => {
 
     <section class="panel sticky top-32 self-start px-6 py-8 md:px-8">
       <SectionTitle
-        kicker="Inspector"
+        kicker="作品编辑"
         title="作品编辑器"
         description="选中左侧作品后，在这里调整标题、描述、Prompt 和公开状态。"
       />

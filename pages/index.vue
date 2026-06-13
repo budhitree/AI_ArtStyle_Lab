@@ -32,7 +32,7 @@ const onSelectArtwork = (artwork: Artwork) => {
     <section class="grid min-h-[calc(100vh-11rem)] gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-stretch">
       <div class="flex flex-col justify-between border-y border-ink/10 py-8 md:py-12">
         <div>
-          <p class="section-kicker">Campus AI Art Museum</p>
+          <p class="section-kicker">校园 AI 艺术展厅</p>
           <h1 class="mt-5 max-w-4xl text-balance font-display text-5xl leading-[0.94] text-ink md:text-7xl">
             校园里的 AI 艺术创作与线上展厅
           </h1>
@@ -48,15 +48,15 @@ const onSelectArtwork = (artwork: Artwork) => {
         <div class="mt-10 grid grid-cols-3 gap-3">
           <div class="border-l border-ink/15 pl-4">
             <p class="font-display text-4xl">{{ artworks.length }}</p>
-            <p class="mt-1 text-xs font-bold uppercase tracking-[0.2em] text-ink/45">Works</p>
+            <p class="mt-1 text-xs font-bold text-ink/45">公开作品</p>
           </div>
           <div class="border-l border-ink/15 pl-4">
             <p class="font-display text-4xl">{{ exhibitions.length }}</p>
-            <p class="mt-1 text-xs font-bold uppercase tracking-[0.2em] text-ink/45">Shows</p>
+            <p class="mt-1 text-xs font-bold text-ink/45">发布展览</p>
           </div>
           <div class="border-l border-ink/15 pl-4">
             <p class="font-display text-4xl">AI</p>
-            <p class="mt-1 text-xs font-bold uppercase tracking-[0.2em] text-ink/45">Studio</p>
+            <p class="mt-1 text-xs font-bold text-ink/45">创作空间</p>
           </div>
         </div>
       </div>
@@ -70,7 +70,7 @@ const onSelectArtwork = (artwork: Artwork) => {
           class="h-full min-h-[30rem] w-full object-cover opacity-[0.92]"
         >
         <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/82 to-transparent p-6 text-white md:p-8">
-          <p class="text-xs font-extrabold uppercase tracking-[0.24em] text-white/60">Featured wall</p>
+          <p class="text-xs font-extrabold text-white/60">推荐作品</p>
           <h2 class="mt-3 max-w-lg font-display text-4xl leading-none">{{ spotlight?.title || 'AI ArtStyle Lab' }}</h2>
           <p class="mt-3 max-w-xl text-sm leading-7 text-white/70">{{ spotlight?.description || '一个面向校内师生的 AI 艺术创作、作品管理与主题展览空间。' }}</p>
         </div>
@@ -97,7 +97,7 @@ const onSelectArtwork = (artwork: Artwork) => {
 
     <section class="space-y-6">
       <SectionTitle
-        kicker="Public Gallery"
+        kicker="公共画廊"
         title="公开作品"
         description="首页只展示允许公开的作品。点开卡片可以查看作品详情、Prompt 和作者。"
       />
@@ -123,7 +123,7 @@ const onSelectArtwork = (artwork: Artwork) => {
 
     <section class="space-y-6">
       <SectionTitle
-        kicker="Curated Exhibitions"
+        kicker="主题展览"
         title="主题展览"
         description="已发布展览会出现在这里；草稿状态只对策展人自己可见。"
       />
