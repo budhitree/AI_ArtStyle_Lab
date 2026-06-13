@@ -14,10 +14,12 @@ const hasMoreExhibitions = ref(false)
 const { data: bootstrap } = await useAsyncData('bootstrap', () => $fetch<AppBootstrap>('/api/bootstrap'))
 
 watch(bootstrap, (value) => {
-  artworks.value = value?.artworks ?? []
-  exhibitions.value = value?.exhibitions ?? []
-  hasMoreArtworks.value = artworks.value.length === artworkPageSize
-  hasMoreExhibitions.value = exhibitions.value.length === exhibitionPageSize
+  const initialArtworks = value?.artworks ?? []
+  const initialExhibitions = value?.exhibitions ?? []
+  artworks.value = initialArtworks.slice(0, artworkPageSize)
+  exhibitions.value = initialExhibitions.slice(0, exhibitionPageSize)
+  hasMoreArtworks.value = initialArtworks.length > artworkPageSize
+  hasMoreExhibitions.value = initialExhibitions.length > exhibitionPageSize
 }, { immediate: true })
 
 watch(() => bootstrap.value?.me, (profile) => {

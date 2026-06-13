@@ -11,6 +11,9 @@ const status = ref('')
 const exhibition = ref<Exhibition | null>(null)
 const availableArtworks = ref<Artwork[]>([])
 const curationArtworks = ref<Artwork[]>([])
+const curationPageSize = 12
+const curationBusy = ref(false)
+const hasMoreCuration = ref(false)
 
 const canEdit = computed(() =>
   Boolean(
@@ -20,16 +23,55 @@ const canEdit = computed(() =>
   )
 )
 
+const mergeAvailableArtworks = (items: Artwork[]) => {
+  const merged = new Map([...availableArtworks.value, ...items].map((artwork) => [artwork.id, artwork]))
+  availableArtworks.value = [...merged.values()]
+}
+
+const loadExhibitionArtworks = async () => {
+  if (!exhibition.value?.artwork_ids.length) {
+    return
+  }
+
+  const artworks = await request<Artwork[]>('/api/artworks', {
+    query: {
+      ids: exhibition.value.artwork_ids.join(',')
+    }
+  })
+  mergeAvailableArtworks(artworks)
+}
+
+const loadCurationArtworks = async (reset = false) => {
+  if (!auth.isAuthenticated || curationBusy.value) {
+    return
+  }
+
+  curationBusy.value = true
+  try {
+    if (reset) {
+      curationArtworks.value = []
+    }
+
+    const next = await request<Artwork[]>('/api/artworks', {
+      query: {
+        scope: 'mine',
+        limit: curationPageSize + 1,
+        offset: curationArtworks.value.length
+      }
+    })
+    const page = next.slice(0, curationPageSize)
+    curationArtworks.value = [...curationArtworks.value, ...page]
+    hasMoreCuration.value = next.length > curationPageSize
+    mergeAvailableArtworks(page)
+  } finally {
+    curationBusy.value = false
+  }
+}
+
 const load = async () => {
   exhibition.value = await request<Exhibition>(`/api/exhibitions/${route.params.id}`)
-  const publicArtworks = await request<Artwork[]>('/api/artworks')
-  availableArtworks.value = publicArtworks
-  if (auth.isAuthenticated) {
-    const myArtworks = await request<Artwork[]>('/api/artworks?scope=mine')
-    curationArtworks.value = myArtworks
-    const merged = new Map([...publicArtworks, ...myArtworks].map((artwork) => [artwork.id, artwork]))
-    availableArtworks.value = [...merged.values()]
-  }
+  availableArtworks.value = []
+  await Promise.all([loadExhibitionArtworks(), loadCurationArtworks(true)])
 }
 
 await callOnce(load)
@@ -165,6 +207,11 @@ const detachArtwork = (artwork: Artwork) => {
               <button class="button-secondary w-full" @click="attachArtwork(artwork)">加入展览</button>
             </div>
           </article>
+        </div>
+        <div v-if="hasMoreCuration" class="mt-6 flex justify-center">
+          <button class="button-secondary" :disabled="curationBusy" @click="loadCurationArtworks()">
+            {{ curationBusy ? '加载中...' : '加载更多可选作品' }}
+          </button>
         </div>
         <div v-if="exhibitionArtworks.length" class="mt-8 space-y-3">
           <p class="field-label">已加入的作品</p>

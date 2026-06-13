@@ -11,7 +11,9 @@ const artworks = ref<Artwork[]>([])
 const selectedArtwork = ref<Artwork | null>(null)
 const status = ref('')
 const filter = ref<'all' | 'public' | 'private' | 'ai' | 'upload'>('all')
-const displayCount = ref(12)
+const pageSize = 12
+const isLoading = ref(false)
+const hasMore = ref(false)
 const filterOptions = [
   { value: 'all', label: '全部' },
   { value: 'public', label: '公开' },
@@ -20,31 +22,42 @@ const filterOptions = [
   { value: 'upload', label: '上传作品' }
 ] as const
 
-const load = async () => {
-  artworks.value = await request<Artwork[]>('/api/artworks?scope=mine')
+const load = async (reset = false) => {
+  if (isLoading.value) {
+    return
+  }
+
+  isLoading.value = true
+  try {
+    if (reset) {
+      artworks.value = []
+      selectedArtwork.value = null
+    }
+
+    const query: Record<string, string | number> = {
+      scope: 'mine',
+      limit: pageSize + 1,
+      offset: artworks.value.length
+    }
+    if (filter.value === 'public' || filter.value === 'private') {
+      query.visibility = filter.value
+    }
+    if (filter.value === 'ai' || filter.value === 'upload') {
+      query.source_type = filter.value
+    }
+
+    const next = await request<Artwork[]>('/api/artworks', { query })
+    artworks.value = [...artworks.value, ...next.slice(0, pageSize)]
+    hasMore.value = next.length > pageSize
+  } finally {
+    isLoading.value = false
+  }
 }
 
-await callOnce(load)
-
-const filtered = computed(() => {
-  switch (filter.value) {
-    case 'public':
-      return artworks.value.filter((item) => item.visibility === 'public')
-    case 'private':
-      return artworks.value.filter((item) => item.visibility === 'private')
-    case 'ai':
-      return artworks.value.filter((item) => item.source_type === 'ai')
-    case 'upload':
-      return artworks.value.filter((item) => item.source_type === 'upload')
-    default:
-      return artworks.value
-  }
-})
-
-const visibleArtworks = computed(() => filtered.value.slice(0, displayCount.value))
+await callOnce(() => load(true))
 
 watch(filter, () => {
-  displayCount.value = 12
+  load(true)
 })
 
 const save = async () => {
@@ -103,9 +116,9 @@ const editArtwork = (artwork: Artwork) => {
         </button>
       </div>
 
-      <div v-if="filtered.length" class="grid gap-5 md:grid-cols-2">
+      <div v-if="artworks.length" class="grid gap-5 md:grid-cols-2">
         <article
-          v-for="artwork in visibleArtworks"
+          v-for="artwork in artworks"
           :key="artwork.id"
           class="overflow-hidden rounded-[1.15rem] border border-ink/10 bg-[rgba(255,252,244,0.82)] shadow-soft"
         >
@@ -128,13 +141,13 @@ const editArtwork = (artwork: Artwork) => {
           </div>
         </article>
       </div>
-      <div v-if="visibleArtworks.length < filtered.length" class="flex justify-center">
-        <button class="button-secondary" @click="displayCount += 12">
-          加载更多作品
+      <div v-if="hasMore" class="flex justify-center">
+        <button class="button-secondary" :disabled="isLoading" @click="load()">
+          {{ isLoading ? '加载中...' : '加载更多作品' }}
         </button>
       </div>
       <EmptyState
-        v-if="!filtered.length"
+        v-if="!artworks.length && !isLoading"
         title="你的作品库还是空的"
         description="先到创作页或上传页生成内容，回来后就能在这里做精细管理。"
       />

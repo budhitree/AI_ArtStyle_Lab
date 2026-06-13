@@ -92,24 +92,62 @@ function toExhibitionRecord(row: Record<string, unknown>, curatorName = 'Unknown
 }
 
 interface ListOptions {
+  ids?: string[]
   limit?: number
   offset?: number
+  sourceType?: Artwork['source_type']
+  visibility?: Artwork['visibility']
 }
 
-export async function listArtworks(scope: 'public' | 'mine', viewer?: Profile | null, options: ListOptions = {}) {
+function filterArtworks(artworks: Artwork[], scope: 'public' | 'mine' | 'accessible', viewer?: Profile | null, options: ListOptions = {}) {
+  return artworks.filter((item) => {
+    if (options.ids?.length && !options.ids.includes(item.id)) {
+      return false
+    }
+    if (options.visibility && item.visibility !== options.visibility) {
+      return false
+    }
+    if (options.sourceType && item.source_type !== options.sourceType) {
+      return false
+    }
+    if (scope === 'mine') {
+      return Boolean(viewer && item.owner_id === viewer.id)
+    }
+    if (scope === 'accessible') {
+      return item.visibility === 'public' || Boolean(viewer && (viewer.role === 'admin' || item.owner_id === viewer.id))
+    }
+    return item.visibility === 'public'
+  })
+}
+
+export async function listArtworks(scope: 'public' | 'mine' | 'accessible', viewer?: Profile | null, options: ListOptions = {}) {
   if (!isSupabaseConfigured()) {
     const state = useLocalState()
-    const artworks = scope === 'mine' && viewer
-      ? state.artworks.filter((item) => item.owner_id === viewer.id)
-      : state.artworks.filter((item) => item.visibility === 'public')
-    const sorted = sortByDateDescending(artworks)
+    const sorted = sortByDateDescending(filterArtworks(state.artworks, scope, viewer, options))
     const start = options.offset ?? 0
     return options.limit ? sorted.slice(start, start + options.limit) : sorted.slice(start)
   }
 
   const supabase = useSupabaseAdmin()
   let query = supabase.from('artworks').select('*')
-  query = scope === 'mine' && viewer ? query.eq('owner_id', viewer.id) : query.eq('visibility', 'public')
+  if (options.ids?.length) {
+    query = query.in('id', options.ids)
+  }
+  if (options.visibility) {
+    query = query.eq('visibility', options.visibility)
+  }
+  if (options.sourceType) {
+    query = query.eq('source_type', options.sourceType)
+  }
+  if (scope === 'mine' && viewer) {
+    query = query.eq('owner_id', viewer.id)
+  } else if (scope === 'accessible' && viewer?.role === 'admin') {
+    query = query
+  } else if (scope === 'accessible' && viewer) {
+    query = query.or(`visibility.eq.public,owner_id.eq.${viewer.id}`)
+  } else {
+    query = query.eq('visibility', 'public')
+  }
   if (options.limit) {
     const start = options.offset ?? 0
     query = query.range(start, start + options.limit - 1)

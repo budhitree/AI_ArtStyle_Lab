@@ -7,6 +7,12 @@ const { request } = useApi()
 const publicExhibitions = ref<Exhibition[]>([])
 const myExhibitions = ref<Exhibition[]>([])
 const status = ref('')
+const publicPageSize = 6
+const myPageSize = 6
+const publicBusy = ref(false)
+const myBusy = ref(false)
+const hasMorePublic = ref(false)
+const hasMoreMine = ref(false)
 
 const form = reactive({
   title: '',
@@ -14,11 +20,59 @@ const form = reactive({
   cover_image_url: '' as string | null
 })
 
-const load = async () => {
-  publicExhibitions.value = await request<Exhibition[]>('/api/exhibitions')
-  if (auth.isAuthenticated && ['teacher', 'admin'].includes(auth.role || '')) {
-    myExhibitions.value = await request<Exhibition[]>('/api/exhibitions?scope=mine')
+const loadPublic = async (reset = false) => {
+  if (publicBusy.value) {
+    return
   }
+
+  publicBusy.value = true
+  try {
+    if (reset) {
+      publicExhibitions.value = []
+    }
+
+    const next = await request<Exhibition[]>('/api/exhibitions', {
+      query: {
+        limit: publicPageSize + 1,
+        offset: publicExhibitions.value.length
+      }
+    })
+    publicExhibitions.value = [...publicExhibitions.value, ...next.slice(0, publicPageSize)]
+    hasMorePublic.value = next.length > publicPageSize
+  } finally {
+    publicBusy.value = false
+  }
+}
+
+const loadMine = async (reset = false) => {
+  if (auth.isAuthenticated && ['teacher', 'admin'].includes(auth.role || '')) {
+    if (myBusy.value) {
+      return
+    }
+
+    myBusy.value = true
+    try {
+      if (reset) {
+        myExhibitions.value = []
+      }
+
+      const next = await request<Exhibition[]>('/api/exhibitions', {
+        query: {
+          scope: 'mine',
+          limit: myPageSize + 1,
+          offset: myExhibitions.value.length
+        }
+      })
+      myExhibitions.value = [...myExhibitions.value, ...next.slice(0, myPageSize)]
+      hasMoreMine.value = next.length > myPageSize
+    } finally {
+      myBusy.value = false
+    }
+  }
+}
+
+const load = async () => {
+  await Promise.all([loadPublic(true), loadMine(true)])
 }
 
 await callOnce(load)
@@ -61,8 +115,13 @@ const createExhibition = async () => {
           :exhibition="exhibition"
         />
       </div>
+      <div v-if="hasMorePublic" class="flex justify-center">
+        <button class="button-secondary" :disabled="publicBusy" @click="loadPublic()">
+          {{ publicBusy ? '加载中...' : '加载更多展览' }}
+        </button>
+      </div>
       <EmptyState
-        v-else
+        v-if="!publicExhibitions.length && !publicBusy"
         title="还没有公开展览"
         description="策展人发布第一场主题展览后，这里就会出现。"
       />
@@ -91,8 +150,13 @@ const createExhibition = async () => {
             :exhibition="exhibition"
           />
         </div>
+        <div v-if="hasMoreMine" class="flex justify-center">
+          <button class="button-secondary" :disabled="myBusy" @click="loadMine()">
+            {{ myBusy ? '加载中...' : '加载更多草稿' }}
+          </button>
+        </div>
         <EmptyState
-          v-else
+          v-if="!myExhibitions.length && !myBusy"
           title="你还没有策展草稿"
           description="创建后的草稿会出现在这里，点进去继续编排作品和发布。"
         />
