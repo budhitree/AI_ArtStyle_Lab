@@ -22,6 +22,8 @@ const intervalSeconds = ref(6)
 const showChrome = ref(true)
 let autoplayTimer: ReturnType<typeof setInterval> | null = null
 let idleTimer: ReturnType<typeof setTimeout> | null = null
+const preloadedUrls = new Set<string>()
+const preloadWindowSize = 5
 
 const total = computed(() => props.artworks.length)
 const currentArtwork = computed(() => props.artworks[activeIndex.value] || null)
@@ -64,6 +66,32 @@ const previous = () => {
   goTo(activeIndex.value - 1)
 }
 
+const preloadImage = (url?: string | null) => {
+  if (!import.meta.client || !url || preloadedUrls.has(url)) {
+    return
+  }
+
+  preloadedUrls.add(url)
+  const image = new Image()
+  image.decoding = 'async'
+  image.src = url
+  if (typeof image.decode === 'function') {
+    image.decode().catch(() => {})
+  }
+}
+
+const preloadUpcomingImages = () => {
+  if (!props.modelValue || !total.value) {
+    return
+  }
+
+  const count = Math.min(preloadWindowSize, total.value)
+  for (let offset = 0; offset < count; offset += 1) {
+    const artwork = props.artworks[clampIndex(activeIndex.value + offset)]
+    preloadImage(artwork?.image_url)
+  }
+}
+
 const startAutoplay = () => {
   clearAutoplayTimer()
   if (!props.modelValue || !autoplay.value || total.value <= 1) {
@@ -72,16 +100,22 @@ const startAutoplay = () => {
   autoplayTimer = setInterval(next, intervalSeconds.value * 1000)
 }
 
-const resetIdleChrome = () => {
+const hideChromeForPlayback = () => {
+  clearIdleTimer()
+  if (props.modelValue && autoplay.value && !showSettings.value) {
+    showChrome.value = false
+  }
+}
+
+const revealChromeTemporarily = () => {
   showChrome.value = true
   clearIdleTimer()
-  if (!props.modelValue) {
+  if (!props.modelValue || !autoplay.value || showSettings.value) {
     return
   }
   idleTimer = setTimeout(() => {
-    showChrome.value = false
-    showSettings.value = false
-  }, 3200)
+    hideChromeForPlayback()
+  }, 1600)
 }
 
 const onKeydown = (event: KeyboardEvent) => {
@@ -98,7 +132,7 @@ const onKeydown = (event: KeyboardEvent) => {
     event.preventDefault()
     autoplay.value = !autoplay.value
   }
-  resetIdleChrome()
+  revealChromeTemporarily()
 }
 
 watch(() => props.modelValue, (value) => {
@@ -110,12 +144,14 @@ watch(() => props.modelValue, (value) => {
     activeIndex.value = clampIndex(props.initialIndex)
     document.body.style.overflow = 'hidden'
     window.addEventListener('keydown', onKeydown)
-    resetIdleChrome()
+    preloadUpcomingImages()
     startAutoplay()
+    showChrome.value = !autoplay.value
   } else {
     document.body.style.overflow = ''
     window.removeEventListener('keydown', onKeydown)
     showSettings.value = false
+    showChrome.value = true
     clearAutoplayTimer()
     clearIdleTimer()
   }
@@ -127,7 +163,27 @@ watch(() => props.initialIndex, (index) => {
   }
 })
 
-watch([autoplay, intervalSeconds, total], startAutoplay)
+watch(activeIndex, preloadUpcomingImages)
+
+watch([autoplay, intervalSeconds, total], () => {
+  startAutoplay()
+  if (props.modelValue) {
+    if (autoplay.value) {
+      hideChromeForPlayback()
+    } else {
+      clearIdleTimer()
+      showChrome.value = true
+    }
+  }
+})
+
+watch(showSettings, (value) => {
+  if (!value && autoplay.value) {
+    hideChromeForPlayback()
+  } else if (value) {
+    showChrome.value = true
+  }
+})
 
 onBeforeUnmount(() => {
   if (import.meta.client) {
@@ -146,8 +202,10 @@ onBeforeUnmount(() => {
         v-if="modelValue"
         class="fixed inset-0 z-[9999] overflow-hidden bg-black text-white"
         :class="{ 'cursor-none': !showChrome }"
-        @mousemove="resetIdleChrome"
-        @click="resetIdleChrome"
+        @pointermove="revealChromeTemporarily"
+        @mousemove="revealChromeTemporarily"
+        @click="revealChromeTemporarily"
+        @touchstart.passive="revealChromeTemporarily"
       >
         <div
           class="pointer-events-none absolute inset-0 z-0 opacity-70"
@@ -159,11 +217,11 @@ onBeforeUnmount(() => {
             class="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between px-5 py-5 transition duration-300 md:px-10 md:py-8"
             :class="showChrome ? 'opacity-100' : 'opacity-0'"
           >
-            <div class="pointer-events-auto">
+            <div :class="showChrome ? 'pointer-events-auto' : 'pointer-events-none'">
               <p class="text-[0.68rem] font-extrabold uppercase tracking-[0.2em] text-white/42">{{ title }}</p>
               <p class="mt-2 text-xs font-bold tracking-[0.16em] text-white/42">{{ counter }}</p>
             </div>
-            <div class="pointer-events-auto flex gap-2">
+            <div class="flex gap-2" :class="showChrome ? 'pointer-events-auto' : 'pointer-events-none'">
               <button class="immersive-control" type="button" @click="showSettings = !showSettings">设置</button>
               <button class="immersive-control" type="button" @click="close">退出</button>
             </div>
@@ -174,7 +232,7 @@ onBeforeUnmount(() => {
               <button
                 class="immersive-arrow left-4 md:left-8"
                 type="button"
-                :class="showChrome ? 'opacity-100' : 'opacity-0'"
+                :class="showChrome ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'"
                 @click.stop="previous"
               >
                 上一张
@@ -184,12 +242,14 @@ onBeforeUnmount(() => {
                 :src="currentArtwork.image_url"
                 :alt="currentArtwork.title"
                 decoding="async"
+                fetchpriority="high"
+                loading="eager"
                 class="max-h-[68vh] max-w-full rounded-sm object-contain drop-shadow-[0_28px_70px_rgba(0,0,0,0.65)]"
               >
               <button
                 class="immersive-arrow right-4 md:right-8"
                 type="button"
-                :class="showChrome ? 'opacity-100' : 'opacity-0'"
+                :class="showChrome ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'"
                 @click.stop="next"
               >
                 下一张
