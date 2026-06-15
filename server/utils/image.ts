@@ -1,5 +1,3 @@
-import sharp from 'sharp'
-
 export interface GeneratedThumbnail {
   buffer: Buffer
   filename: string
@@ -8,6 +6,7 @@ export interface GeneratedThumbnail {
 
 export async function createImageThumbnail(buffer: Buffer, baseName = 'thumbnail'): Promise<GeneratedThumbnail | null> {
   try {
+    const { default: sharp } = await import('sharp')
     const output = await sharp(buffer, { failOn: 'none' })
       .rotate()
       .resize({

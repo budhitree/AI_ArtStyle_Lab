@@ -1,4 +1,4 @@
-import type { Artwork, Exhibition, Profile } from '~/shared/types'
+import type { AiGeneratePayload, AiGeneration, AiResult, Artwork, Exhibition, Profile } from '~/shared/types'
 import { useDemoState } from './demo-state'
 import { useLegacyState } from './legacy-state'
 import { isSupabaseConfigured, useSupabaseAdmin } from './supabase'
@@ -92,6 +92,17 @@ function toExhibitionRecord(row: Record<string, unknown>, curatorName = 'Unknown
     artwork_ids: artworkIds,
     created_at: row.created_at as string,
     updated_at: row.updated_at as string
+  }
+}
+
+function toAiGenerationRecord(row: Record<string, unknown>): AiGeneration {
+  return {
+    id: row.id as string,
+    user_id: row.user_id as string,
+    prompt: row.prompt as string,
+    params: row.params as AiGeneratePayload,
+    result_images: row.result_images as AiResult[],
+    created_at: row.created_at as string
   }
 }
 
@@ -337,6 +348,64 @@ export async function createArtworkEntry(
   }
 
   return toArtworkRecord(data, viewer.name)
+}
+
+export async function createAiGenerationEntry(
+  input: {
+    prompt: string
+    params: AiGeneratePayload
+    resultImages: AiResult[]
+  },
+  viewer: Profile
+) {
+  if (!isSupabaseConfigured()) {
+    return {
+      id: crypto.randomUUID(),
+      user_id: viewer.id,
+      prompt: input.prompt,
+      params: input.params,
+      result_images: input.resultImages,
+      created_at: new Date().toISOString()
+    } satisfies AiGeneration
+  }
+
+  const supabase = useSupabaseAdmin()
+  const { data, error } = await supabase
+    .from('ai_generations')
+    .insert({
+      user_id: viewer.id,
+      prompt: input.prompt,
+      params: input.params,
+      result_images: input.resultImages
+    })
+    .select('*')
+    .single()
+
+  if (error || !data) {
+    throw createError({ statusCode: 500, statusMessage: error?.message || 'Failed to save AI generation.' })
+  }
+
+  return toAiGenerationRecord(data)
+}
+
+export async function listAiGenerationEntries(viewer: Profile, limit = 20): Promise<AiGeneration[]> {
+  if (!isSupabaseConfigured()) {
+    return []
+  }
+
+  const supabase = useSupabaseAdmin()
+  const { data, error } = await supabase
+    .from('ai_generations')
+    .select('*')
+    .eq('user_id', viewer.id)
+    .order('created_at', { ascending: false })
+    .limit(Math.min(Math.max(limit, 1), 50))
+
+  if (error) {
+    throw createError({ statusCode: 500, statusMessage: error.message })
+  }
+
+  return (data || []).map((row) => toAiGenerationRecord(row))
 }
 
 export async function updateArtworkEntry(id: string, updates: Partial<Artwork>, viewer: Profile) {

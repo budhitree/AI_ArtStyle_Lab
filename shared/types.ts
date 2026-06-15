@@ -62,6 +62,15 @@ export interface AiResult {
   prompt: string
 }
 
+export interface AiGeneration {
+  id: string
+  user_id: string
+  prompt: string
+  params: AiGeneratePayload
+  result_images: AiResult[]
+  created_at: string
+}
+
 export interface AppBootstrap {
   mode: 'demo' | 'supabase'
   artworks: Artwork[]

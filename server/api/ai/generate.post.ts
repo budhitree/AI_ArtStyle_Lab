@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { generateAiImages } from '../../utils/ai'
 import { requireProfile } from '../../utils/auth'
+import { createAiGenerationEntry } from '../../utils/repository'
 
 const schema = z.object({
   subject: z.string().min(1),
@@ -11,7 +12,15 @@ const schema = z.object({
 })
 
 export default defineEventHandler(async (event) => {
-  await requireProfile(event)
+  const viewer = await requireProfile(event)
   const payload = schema.parse(await readBody(event))
-  return await generateAiImages(payload)
+  const results = await generateAiImages(payload)
+  if (results.length) {
+    await createAiGenerationEntry({
+      prompt: results[0]?.prompt || [payload.subject, payload.background, payload.style, payload.details].filter(Boolean).join('，'),
+      params: payload,
+      resultImages: results
+    }, viewer)
+  }
+  return results
 })

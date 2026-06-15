@@ -3,7 +3,7 @@ definePageMeta({
   middleware: 'auth'
 })
 
-import type { AiResult } from '~/shared/types'
+import type { AiGeneration, AiResult } from '~/shared/types'
 
 const { request } = useApi()
 
@@ -20,6 +20,20 @@ const saveBusy = ref(false)
 const status = ref('')
 const results = ref<AiResult[]>([])
 const selectedImage = ref<AiResult | null>(null)
+const saveVisibility = ref<'public' | 'private'>('public')
+const history = ref<AiGeneration[]>([])
+const historyBusy = ref(false)
+
+const loadHistory = async () => {
+  historyBusy.value = true
+  try {
+    history.value = await request<AiGeneration[]>('/api/ai/generations', {
+      query: { limit: 20 }
+    })
+  } finally {
+    historyBusy.value = false
+  }
+}
 
 const generate = async () => {
   busy.value = true
@@ -30,6 +44,7 @@ const generate = async () => {
       body: form
     })
     selectedImage.value = results.value[0] || null
+    await loadHistory()
   } catch (error) {
     status.value = error instanceof Error ? error.message : '生成失败'
   } finally {
@@ -51,7 +66,7 @@ const saveToGallery = async () => {
         description: `${form.background} / ${form.style}`.trim(),
         prompt: selectedImage.value.prompt,
         imageUrl: selectedImage.value.url,
-        visibility: 'public'
+        visibility: saveVisibility.value
       }
     })
     status.value = '已保存到作品库。'
@@ -71,6 +86,21 @@ const downloadSelected = async () => {
   link.download = `${form.subject || 'ai-artwork'}.jpg`
   link.click()
 }
+
+const restoreHistory = (item: AiGeneration) => {
+  results.value = item.result_images
+  selectedImage.value = item.result_images[0] || null
+  form.subject = item.params.subject || form.subject
+  form.background = item.params.background || ''
+  form.style = item.params.style || ''
+  form.details = item.params.details || ''
+  form.ratio = item.params.ratio || '1:1'
+  status.value = '已载入历史生成结果。'
+}
+
+onMounted(() => {
+  void loadHistory()
+})
 </script>
 
 <template>
@@ -121,9 +151,43 @@ const downloadSelected = async () => {
         </button>
       </div>
 
+      <label class="mt-5 block space-y-2">
+        <span class="field-label">保存公开状态</span>
+        <select v-model="saveVisibility" class="field-input">
+          <option value="public">公开展示</option>
+          <option value="private">仅自己可见</option>
+        </select>
+      </label>
+
       <p v-if="status" class="mt-5 rounded-xl border border-ink/10 bg-white/70 px-4 py-3 text-sm font-semibold text-ink/70">
         {{ status }}
       </p>
+
+      <div class="mt-8 border-t border-ink/10 pt-6">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <p class="section-kicker">生成历史</p>
+            <h2 class="mt-2 font-display text-2xl">最近生成</h2>
+          </div>
+          <button class="button-secondary" :disabled="historyBusy" @click="loadHistory">
+            {{ historyBusy ? '刷新中...' : '刷新' }}
+          </button>
+        </div>
+        <div v-if="history.length" class="mt-4 grid gap-3">
+          <button
+            v-for="item in history"
+            :key="item.id"
+            class="rounded-xl border border-ink/10 bg-white/65 px-4 py-3 text-left transition hover:border-ink/25 hover:bg-white"
+            @click="restoreHistory(item)"
+          >
+            <p class="line-clamp-2 text-sm font-semibold leading-6 text-ink/75">{{ item.prompt }}</p>
+            <p class="mt-1 text-xs text-ink/45">{{ new Date(item.created_at).toLocaleString() }} · {{ item.result_images.length }} 张</p>
+          </button>
+        </div>
+        <p v-else class="mt-4 rounded-xl bg-white/60 px-4 py-3 text-sm text-ink/50">
+          暂无生成历史。
+        </p>
+      </div>
     </section>
 
     <section class="panel studio-grid min-h-[34rem] px-4 py-4 md:px-5 md:py-5 lg:min-h-[42rem] lg:px-6 lg:py-6">

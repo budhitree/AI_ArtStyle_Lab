@@ -28,6 +28,7 @@ const load = async (reset = false) => {
   }
 
   isLoading.value = true
+  status.value = ''
   try {
     if (reset) {
       artworks.value = []
@@ -49,15 +50,19 @@ const load = async (reset = false) => {
     const next = await request<Artwork[]>('/api/artworks', { query })
     artworks.value = [...artworks.value, ...next.slice(0, pageSize)]
     hasMore.value = next.length > pageSize
+  } catch (error) {
+    status.value = error instanceof Error ? error.message : '作品加载失败'
   } finally {
     isLoading.value = false
   }
 }
 
-await callOnce(() => load(true))
+onMounted(() => {
+  void load(true)
+})
 
 watch(filter, () => {
-  load(true)
+  void load(true)
 })
 
 const save = async () => {
@@ -71,8 +76,7 @@ const save = async () => {
       body: {
         title: selectedArtwork.value.title,
         description: selectedArtwork.value.description,
-        prompt: selectedArtwork.value.prompt,
-        visibility: selectedArtwork.value.visibility
+        prompt: selectedArtwork.value.prompt
       }
     })
     artworks.value = artworks.value.map((item) => item.id === updated.id ? updated : item)
@@ -82,7 +86,32 @@ const save = async () => {
   }
 }
 
+const toggleVisibility = async (artwork: Artwork) => {
+  const nextVisibility = artwork.visibility === 'public' ? 'private' : 'public'
+  try {
+    const updated = await request<Artwork>(`/api/artworks/${artwork.id}`, {
+      method: 'PATCH',
+      body: {
+        title: artwork.title,
+        description: artwork.description,
+        prompt: artwork.prompt,
+        visibility: nextVisibility
+      }
+    })
+    artworks.value = artworks.value.map((item) => item.id === updated.id ? updated : item)
+    if (selectedArtwork.value?.id === updated.id) {
+      selectedArtwork.value = { ...selectedArtwork.value, ...updated }
+    }
+    status.value = updated.visibility === 'public' ? '作品已设为公开。' : '作品已设为仅自己可见。'
+  } catch (error) {
+    status.value = error instanceof Error ? error.message : '公开状态更新失败'
+  }
+}
+
 const remove = async (artwork: Artwork) => {
+  if (import.meta.client && !window.confirm(`确定删除《${artwork.title}》吗？删除后无法恢复。`)) {
+    return
+  }
   await request(`/api/artworks/${artwork.id}`, { method: 'DELETE' })
   artworks.value = artworks.value.filter((item) => item.id !== artwork.id)
   if (selectedArtwork.value?.id === artwork.id) {
@@ -134,9 +163,16 @@ const editArtwork = (artwork: Artwork) => {
               <h3 class="font-display text-2xl leading-tight">{{ artwork.title }}</h3>
               <p class="mt-2 line-clamp-2 text-sm leading-7 text-ink/60">{{ artwork.description }}</p>
             </div>
-            <div class="flex gap-2">
-              <button class="button-secondary" @click="editArtwork(artwork)">编辑</button>
-              <button class="button-danger" @click="remove(artwork)">删除</button>
+            <div class="grid grid-cols-3 gap-2">
+              <button
+                class="h-12 rounded-full border px-2 text-sm font-extrabold transition"
+                :class="artwork.visibility === 'public' ? 'border-forest/25 bg-forest text-white shadow-soft' : 'border-ink/15 bg-white/70 text-ink/45 hover:bg-white'"
+                @click="toggleVisibility(artwork)"
+              >
+                公开
+              </button>
+              <button class="h-12 rounded-full border border-ink/15 bg-white/80 px-2 text-sm font-extrabold text-ink transition hover:bg-white" @click="editArtwork(artwork)">编辑</button>
+              <button class="h-12 rounded-full border border-ember/20 bg-ember/10 px-2 text-sm font-extrabold text-ember transition hover:bg-ember/15" @click="remove(artwork)">删除</button>
             </div>
           </div>
         </article>
@@ -175,13 +211,6 @@ const editArtwork = (artwork: Artwork) => {
         <label class="block space-y-2">
           <span class="field-label">Prompt</span>
           <textarea v-model="selectedArtwork.prompt" class="field-input min-h-24" />
-        </label>
-        <label class="block space-y-2">
-          <span class="field-label">公开状态</span>
-          <select v-model="selectedArtwork.visibility" class="field-input">
-            <option value="public">公开</option>
-            <option value="private">私有</option>
-          </select>
         </label>
         <button class="button-primary" @click="save">保存修改</button>
         <p v-if="status" class="rounded-xl border border-ink/10 bg-white/70 px-4 py-3 text-sm font-semibold text-ink/70">{{ status }}</p>
