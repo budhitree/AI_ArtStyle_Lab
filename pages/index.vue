@@ -119,8 +119,8 @@ const loadMoreExhibitions = async () => {
 
 <template>
   <div class="shell space-y-16">
-    <section class="grid min-h-[calc(100vh-11rem)] gap-5 lg:grid-cols-[0.92fr_1.08fr] lg:items-stretch">
-      <div class="flex flex-col justify-between border-y border-ink/10 py-8 md:py-12">
+    <section class="grid gap-5 lg:grid-cols-[0.9fr_1fr] lg:items-start">
+      <div class="flex flex-col border-y border-ink/10 py-8 md:py-10">
         <div>
           <p class="section-kicker">校园 AI 艺术展厅</p>
           <h1 class="mt-5 max-w-4xl text-balance font-display text-5xl leading-[0.94] text-ink md:text-7xl">
@@ -136,7 +136,7 @@ const loadMoreExhibitions = async () => {
           </div>
         </div>
 
-        <div class="mt-10 grid grid-cols-3 gap-3">
+        <div class="mt-12 grid grid-cols-3 gap-3">
           <div class="border-l border-ink/15 pl-4">
             <p class="font-display text-4xl">{{ publicArtworkCount }}</p>
             <p class="mt-1 text-xs font-bold text-ink/45">公开作品</p>
@@ -152,7 +152,7 @@ const loadMoreExhibitions = async () => {
         </div>
       </div>
 
-      <div class="relative min-h-[30rem] overflow-hidden rounded-[1.35rem] border border-ink/10 bg-ink shadow-card">
+      <div class="relative aspect-square overflow-hidden rounded-[1.35rem] border border-ink/10 bg-ink shadow-card">
         <Transition name="fade" mode="out-in">
           <img
             :key="spotlight?.id || 'fallback'"
@@ -160,7 +160,7 @@ const loadMoreExhibitions = async () => {
             :alt="spotlight?.title || 'AI ArtStyle Lab hero image'"
             fetchpriority="high"
             decoding="async"
-            class="h-full min-h-[30rem] w-full object-cover opacity-[0.92]"
+            class="h-full w-full object-cover opacity-[0.92]"
           >
         </Transition>
         <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/82 to-transparent p-6 text-white md:p-8">
