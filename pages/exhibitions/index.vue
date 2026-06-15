@@ -75,18 +75,16 @@ const loadMine = async (reset = false) => {
   }
 }
 
-const load = async () => {
-  await Promise.all([loadPublic(true), loadMine(true)])
+if (import.meta.server) {
+  await loadPublic(true)
 }
-
-await callOnce(load)
 
 if (import.meta.client) {
   onMounted(async () => {
     if (!auth.initialized) {
       await auth.initialize()
     }
-    await loadMine(true)
+    await Promise.all([loadPublic(true), loadMine(true)])
   })
 }
 
