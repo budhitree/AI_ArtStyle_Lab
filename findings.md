@@ -1,41 +1,41 @@
 # Findings
 
-## Rebuild Inputs
-- 旧项目的高价值资产主要是 `public/images/*` 示例素材、`public/uploads/` 上传目录结构，以及现有业务能力定义
-- 旧项目的低价值部分是 Express/SQLite 运行链路、兼容旧接口逻辑、散落页面脚本、重复文档与异常目录 `%SystemDrive%/`
-- 用户明确允许按“新项目”重建，旧实现可全部丢弃，只要功能保留
-- 用户偏好现代、AI 协作友好的方案：Nuxt + Tailwind + Supabase
-- 用户接受激进清理，不要求保留旧接口、旧 URL、旧 localStorage 数据结构
+## 当前项目结论
+- 项目已经从早期 demo 进入正式应用形态，维护入口应以 Nuxt 3 根目录为准。
+- `legacy/vite-express-demo/` 仅保留为历史参考和旧数据来源，不应继续在旧项目中开发新功能。
+- 生产数据能力已经转向 Supabase：Auth、Postgres、Storage 均由正式环境承担。
+- 用户前台身份体系已经改为学号 / 工号，邮箱只作为 Supabase Auth 后台标识。
+- 图片量增加是主要性能风险，当前已通过缩略图、分页、随机取样和沉浸模式预加载缓解。
 
-## Assets To Reuse
-- `public/images/hero.png`
-- `public/images/art1.png`
-- `public/images/art2.png`
-- `public/images/art3.png`
-- `public/uploads/.gitkeep`
-- 旧项目中的业务概念：角色、作品、AI 创作、展览、沉浸模式
+## 功能覆盖
+- 首页：公开作品随机展示、公开总数、推荐作品轮播、公共画廊、沉浸模式入口。
+- 账号：学号 / 工号登录注册、角色自动识别、会话恢复。
+- AI 创作：结构化 Prompt、AI 图片生成、下载、保存入库。
+- 上传：原图上传、缩略图生成、作品元信息、公开状态。
+- 我的作品：筛选、分页、编辑、删除。
+- 展览：公开展览浏览、教师/管理员创建草稿、发布、删除。
+- 策展：教师可选择学生作品和自己的作品，管理员可选择全部作品；选图使用小缩略图网格；展览作品去重。
+- 作品详情：查看原图、作者、来源、Prompt，支持下载原图。
+- 沉浸模式：全屏播放、自动播放、播放速度、预加载、播放时隐藏控制、保留作品信息。
 
-## Likely To Archive
-- `src/`
-- `server/`
-- `server.js`
-- `index.html`
-- `create.html`
-- `upload.html`
-- `vite.config.js`
-- 旧部署文档与 Docker 文件
-- `%SystemDrive%/`
+## 数据与权限
+- 核心数据模型包括 `profiles`、`artworks`、`exhibitions`、`exhibition_artworks`。
+- 学生只能管理自己的作品。
+- 教师可以管理自己的展览，并在策展时选择学生作品和自己的作品。
+- 管理员可维护全部作品与展览。
+- 未登录用户只能看公开作品和已发布展览。
+- 草稿展览只允许策展人或管理员访问。
 
-## Constraints
-- 需要让新项目在没有真实 Supabase / 火山配置时也能安装、构建并展示基本页面
-- 需要提供迁移脚本和 schema，但本地无法替用户真实创建远端 Supabase 资源
+## 已知风险
+- 图片继续增长后，单页缩略图数量、Storage 图片尺寸和 CDN 缓存策略仍可能成为性能瓶颈。
+- 移动端虽然可访问，但仍需要完整走查各页面排版、弹窗和沉浸模式交互。
+- Supabase RLS 与服务端 service role 逻辑需要在每次数据库迁移后复查。
+- 旧数据迁移后应抽样核对用户、图片、展览关联和重复数据。
+- AI 生成接口依赖外部额度、模型稳定性和 API key 配置，生产环境需要监控失败率。
 
-## Execution Results
-- 旧实现已归档到 `legacy/vite-express-demo/`
-- 新项目根目录已切换到 Nuxt 3 + Tailwind + Pinia 结构
-- 现有 `public/images/*` 与 `public/uploads/.gitkeep` 已保留供新站复用
-- `server/data` 中的旧 SQLite 数据源已迁出到 legacy 区域，避免污染新 `server/` 目录
-- `scripts/migrate-legacy.mjs` 已成功导出 `migration-output/legacy-export.json` 与 `migration-output/asset-manifest.json`
-- `npm run build` 已通过
-- `npm run typecheck` 已通过
-- `node .output/server/index.mjs` 预览时，根路径 `/` 与 `/api/bootstrap` 均返回 200
+## 维护建议
+- 每次功能改动后至少执行 `npm run typecheck` 和 `npm run build`。
+- 视觉或交互改动后使用浏览器实际检查桌面和移动视口。
+- 生产部署后检查 Vercel 错误日志。
+- 数据库迁移先在测试项目执行，再应用到生产 Supabase。
+- 涉及账号、权限、Storage 的改动要同时检查前端、API 和数据库策略。
