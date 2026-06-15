@@ -50,7 +50,13 @@ const loadExhibitionArtworks = async () => {
 }
 
 const loadCurationArtworks = async (reset = false) => {
-  if (!auth.isAuthenticated || curationBusy.value) {
+  if (!canEdit.value) {
+    curationArtworks.value = []
+    hasMoreCuration.value = false
+    return
+  }
+
+  if (curationBusy.value) {
     return
   }
 
@@ -89,7 +95,10 @@ const load = async () => {
     availableArtworks.value = []
     curationArtworks.value = []
     hasMoreCuration.value = false
-    await Promise.all([loadExhibitionArtworks(), loadCurationArtworks(true)])
+    await loadExhibitionArtworks()
+    if (canEdit.value) {
+      await loadCurationArtworks(true)
+    }
   } catch (error) {
     exhibition.value = null
     availableArtworks.value = []
