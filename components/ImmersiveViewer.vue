@@ -263,7 +263,6 @@ onBeforeUnmount(() => {
             <section
               v-if="currentArtwork"
               class="mx-auto mt-8 w-full max-w-3xl text-center transition duration-300"
-              :class="showChrome ? 'opacity-100 translate-y-0' : 'translate-y-3 opacity-0'"
             >
               <div class="flex flex-wrap items-baseline justify-center gap-x-3 gap-y-1">
                 <h2 class="font-display text-3xl leading-none text-white md:text-5xl">{{ currentArtwork.title }}</h2>
