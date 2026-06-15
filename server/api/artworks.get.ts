@@ -1,5 +1,5 @@
 import { getOptionalProfile, requireProfile } from '../utils/auth'
-import { listArtworks } from '../utils/repository'
+import { getExhibitionById, listArtworks } from '../utils/repository'
 import type { ArtworkSourceType, ArtworkVisibility } from '~/shared/types'
 
 function numberQuery(value: unknown, fallback?: number) {
@@ -20,7 +20,16 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const ids = listQuery(query.ids)
   const excludeIds = listQuery(query.exclude)
-  const scope = query.scope === 'mine' ? 'mine' : query.scope === 'curation' ? 'curation' : ids?.length ? 'accessible' : 'public'
+  const exhibitionId = stringQuery(query.exhibition_id)
+  const scope = query.scope === 'mine'
+    ? 'mine'
+    : query.scope === 'curation'
+      ? 'curation'
+      : query.scope === 'exhibition'
+        ? 'exhibition'
+        : ids?.length
+          ? 'accessible'
+          : 'public'
   const limit = numberQuery(query.limit, undefined)
   const offset = numberQuery(query.offset, 0)
   const random = query.random === 'true' || query.random === '1'
@@ -36,6 +45,26 @@ export default defineEventHandler(async (event) => {
   }
 
   const viewer = await getOptionalProfile(event)
+  if (scope === 'exhibition') {
+    if (!exhibitionId) {
+      throw createError({ statusCode: 400, statusMessage: 'exhibition_id is required.' })
+    }
+    const exhibition = await getExhibitionById(exhibitionId, viewer)
+    const exhibitionArtworkIds = exhibition.artwork_ids.filter((id) => !ids?.length || ids.includes(id))
+    if (!exhibitionArtworkIds.length) {
+      return []
+    }
+    return await listArtworks('exhibition', viewer, {
+      excludeIds,
+      ids: exhibitionArtworkIds,
+      limit,
+      offset,
+      random,
+      sourceType,
+      visibility
+    })
+  }
+
   if (scope === 'public' && random) {
     setHeader(event, 'Cache-Control', 'no-store')
   } else if (scope === 'public') {

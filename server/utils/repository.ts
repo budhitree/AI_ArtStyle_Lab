@@ -116,7 +116,7 @@ interface ListOptions {
   visibility?: Artwork['visibility']
 }
 
-type ArtworkScope = 'public' | 'mine' | 'accessible' | 'curation'
+type ArtworkScope = 'public' | 'mine' | 'accessible' | 'curation' | 'exhibition'
 
 function shuffleItems<T>(items: T[]) {
   const shuffled = [...items]
@@ -139,6 +139,9 @@ function canUseArtworkForScope(item: Artwork, scope: ArtworkScope, viewer: Profi
   }
   if (scope === 'accessible') {
     return item.visibility === 'public' || Boolean(viewer && (viewer.role === 'admin' || item.owner_id === viewer.id))
+  }
+  if (scope === 'exhibition') {
+    return true
   }
   return item.visibility === 'public'
 }
@@ -202,6 +205,8 @@ export async function countArtworks(scope: ArtworkScope, viewer?: Profile | null
     query = query.in('owner_id', ownerIds)
   } else if (scope === 'curation' && viewer?.role !== 'admin') {
     return 0
+  } else if (scope === 'exhibition') {
+    query = query
   } else if (scope === 'accessible' && viewer?.role === 'admin') {
     query = query
   } else if (scope === 'accessible' && viewer) {
@@ -281,6 +286,8 @@ export async function listArtworks(scope: ArtworkScope, viewer?: Profile | null,
     query = query.in('owner_id', ownerIds)
   } else if (scope === 'curation' && viewer?.role !== 'admin') {
     return []
+  } else if (scope === 'exhibition') {
+    query = query
   } else if (scope === 'accessible' && viewer?.role === 'admin') {
     query = query
   } else if (scope === 'accessible' && viewer) {

@@ -39,11 +39,11 @@ const loadExhibitionArtworks = async () => {
     return
   }
 
-  const canLoadCurationScope = ['teacher', 'admin'].includes(auth.role || '')
   const artworks = await request<Artwork[]>('/api/artworks', {
     query: {
+      scope: 'exhibition',
+      exhibition_id: exhibition.value.id,
       ids: exhibition.value.artwork_ids.join(','),
-      ...(canLoadCurationScope ? { scope: 'curation' } : {})
     }
   })
   mergeAvailableArtworks(artworks)
