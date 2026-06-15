@@ -12,6 +12,8 @@ const exhibitionBusy = ref(false)
 const hasMoreArtworks = ref(false)
 const hasMoreExhibitions = ref(false)
 const spotlightIndex = ref(0)
+const immersiveOpen = ref(false)
+const immersiveStartIndex = ref(0)
 let spotlightTimer: ReturnType<typeof setInterval> | null = null
 
 const { data: bootstrap } = await useAsyncData('bootstrap', () => $fetch<AppBootstrap>('/api/bootstrap'))
@@ -62,6 +64,15 @@ onBeforeUnmount(() => {
 
 const onSelectArtwork = (artwork: Artwork) => {
   selectedArtwork.value = artwork
+}
+
+const openImmersive = (artwork?: Artwork | null) => {
+  if (!artworks.value.length) {
+    return
+  }
+  const index = artwork ? artworks.value.findIndex((item) => item.id === artwork.id) : spotlightIndex.value
+  immersiveStartIndex.value = index >= 0 ? index : 0
+  immersiveOpen.value = true
 }
 
 const loadMoreArtworks = async () => {
@@ -121,6 +132,7 @@ const loadMoreExhibitions = async () => {
           <div class="mt-8 flex flex-wrap gap-3">
             <NuxtLink class="button-primary" to="/create">进入创作工作台</NuxtLink>
             <NuxtLink class="button-secondary" to="/exhibitions">浏览线上展厅</NuxtLink>
+            <button class="button-secondary" type="button" :disabled="!artworks.length" @click="openImmersive(spotlight)">沉浸模式观看</button>
           </div>
         </div>
 
@@ -183,6 +195,9 @@ const loadMoreExhibitions = async () => {
         title="公开作品"
         description="首页只展示允许公开的作品。点开卡片可以查看作品详情、Prompt 和作者。"
       />
+      <div v-if="artworks.length" class="flex justify-end">
+        <button class="button-secondary" type="button" @click="openImmersive()">沉浸模式观看</button>
+      </div>
       <div v-if="artworks.length" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         <ArtworkCard
           v-for="artwork in artworks"
@@ -229,6 +244,12 @@ const loadMoreExhibitions = async () => {
     </section>
 
     <ArtworkViewer :artwork="selectedArtwork" @close="selectedArtwork = null" />
+    <ImmersiveViewer
+      v-model="immersiveOpen"
+      :artworks="artworks"
+      :initial-index="immersiveStartIndex"
+      title="公共画廊沉浸模式"
+    />
   </div>
 </template>
 

@@ -10,6 +10,8 @@ const selectedArtwork = ref<Artwork | null>(null)
 const status = ref('')
 const pageStatus = ref('')
 const pageBusy = ref(true)
+const immersiveOpen = ref(false)
+const immersiveStartIndex = ref(0)
 const exhibition = ref<Exhibition | null>(null)
 const availableArtworks = ref<Artwork[]>([])
 const curationArtworks = ref<Artwork[]>([])
@@ -154,6 +156,15 @@ const remainingArtworks = computed(() => {
   return curationArtworks.value.filter((item) => !selectedArtworkIds.value.has(item.id))
 })
 
+const openImmersive = (artwork?: Artwork) => {
+  if (!exhibitionArtworks.value.length) {
+    return
+  }
+  const index = artwork ? exhibitionArtworks.value.findIndex((item) => item.id === artwork.id) : 0
+  immersiveStartIndex.value = index >= 0 ? index : 0
+  immersiveOpen.value = true
+}
+
 const save = async () => {
   if (!exhibition.value || !savePayload.value) {
     return
@@ -228,6 +239,14 @@ const detachArtwork = (artwork: Artwork) => {
         <div>
           <h1 class="mt-4 font-display text-5xl leading-none md:text-6xl">{{ exhibition.title }}</h1>
           <p class="mt-6 text-lg leading-8 text-ink/64">{{ exhibition.description }}</p>
+          <button
+            v-if="exhibitionArtworks.length"
+            class="button-secondary mt-6"
+            type="button"
+            @click="openImmersive()"
+          >
+            沉浸模式观看
+          </button>
         </div>
         <div class="mt-8 grid grid-cols-3 gap-3 border-t border-ink/10 pt-5 text-xs font-bold text-ink/45">
           <span>策展人<br><b class="mt-1 block text-sm text-ink">{{ exhibition.curator_name }}</b></span>
@@ -251,8 +270,11 @@ const detachArtwork = (artwork: Artwork) => {
           @select="selectedArtwork = artwork"
         />
       </div>
+      <div v-if="exhibitionArtworks.length" class="flex justify-end">
+        <button class="button-secondary" type="button" @click="openImmersive()">沉浸模式观看</button>
+      </div>
       <EmptyState
-        v-else
+        v-if="!exhibitionArtworks.length"
         title="这场展览还没有挂上作品"
         description="教师或管理员可以在下方管理区域继续添加作品。"
       />
@@ -328,5 +350,12 @@ const detachArtwork = (artwork: Artwork) => {
     </section>
 
     <ArtworkViewer :artwork="selectedArtwork" @close="selectedArtwork = null" />
+    <ImmersiveViewer
+      v-if="exhibition"
+      v-model="immersiveOpen"
+      :artworks="exhibitionArtworks"
+      :initial-index="immersiveStartIndex"
+      :title="`${exhibition.title} · 沉浸模式`"
+    />
   </div>
 </template>
