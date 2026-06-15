@@ -96,7 +96,7 @@ const editArtwork = (artwork: Artwork) => {
 </script>
 
 <template>
-  <div class="shell grid gap-6 xl:grid-cols-[1.08fr_0.92fr]">
+  <div class="shell grid gap-5 md:grid-cols-[1.08fr_0.92fr] lg:gap-6">
     <section class="space-y-6">
       <SectionTitle
         kicker="我的作品"
@@ -116,7 +116,7 @@ const editArtwork = (artwork: Artwork) => {
         </button>
       </div>
 
-      <div v-if="artworks.length" class="grid gap-5 md:grid-cols-2">
+      <div v-if="artworks.length" class="grid gap-4 md:grid-cols-2 lg:gap-5">
         <article
           v-for="artwork in artworks"
           :key="artwork.id"
@@ -153,7 +153,7 @@ const editArtwork = (artwork: Artwork) => {
       />
     </section>
 
-    <section class="panel sticky top-32 self-start px-6 py-8 md:px-8">
+    <section class="panel sticky top-28 self-start px-5 py-6 lg:top-32 lg:px-8 lg:py-8">
       <SectionTitle
         kicker="作品编辑"
         title="作品编辑器"

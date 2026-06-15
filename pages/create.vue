@@ -74,7 +74,7 @@ const downloadSelected = async () => {
 </script>
 
 <template>
-  <div class="shell grid gap-6 xl:grid-cols-[0.82fr_1.18fr]">
+  <div class="shell grid gap-5 md:grid-cols-[0.82fr_1.18fr] lg:gap-6">
     <section class="panel px-6 py-8 md:px-8">
       <SectionTitle
         kicker="AI 创作"
@@ -126,7 +126,7 @@ const downloadSelected = async () => {
       </p>
     </section>
 
-    <section class="panel studio-grid min-h-[42rem] px-4 py-4 md:px-6 md:py-6">
+    <section class="panel studio-grid min-h-[34rem] px-4 py-4 md:px-5 md:py-5 lg:min-h-[42rem] lg:px-6 lg:py-6">
       <div class="mb-5 flex flex-col gap-3 border-b border-ink/10 pb-5 md:flex-row md:items-center md:justify-between">
         <div>
           <p class="section-kicker">生成结果</p>
@@ -134,7 +134,7 @@ const downloadSelected = async () => {
         </div>
         <p class="max-w-sm text-sm leading-6 text-ink/50">点击作品确定当前选择，再下载或保存到作品库。</p>
       </div>
-      <div v-if="results.length" class="grid gap-4 md:grid-cols-2">
+      <div v-if="results.length" class="grid gap-3 md:grid-cols-2 lg:gap-4">
         <button
           v-for="result in results"
           :key="result.id"

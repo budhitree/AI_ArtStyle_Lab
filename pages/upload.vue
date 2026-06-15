@@ -148,7 +148,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div class="shell grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+  <div class="shell grid gap-5 md:grid-cols-[0.9fr_1.1fr] lg:gap-6">
     <section class="panel px-6 py-8 md:px-8">
       <SectionTitle
         kicker="上传作品"
@@ -191,7 +191,7 @@ onBeforeUnmount(() => {
       <p v-if="status" class="mt-5 rounded-xl border border-ink/10 bg-white/70 px-4 py-3 text-sm font-semibold text-ink/70">{{ status }}</p>
     </section>
 
-    <section class="panel studio-grid flex min-h-[40rem] items-center justify-center px-4 py-4 md:px-6 md:py-6">
+    <section class="panel studio-grid flex min-h-[32rem] items-center justify-center px-4 py-4 md:px-5 md:py-5 lg:min-h-[40rem] lg:px-6 lg:py-6">
       <div v-if="preview" class="w-full space-y-4">
         <div class="art-frame bg-white p-2">
           <img :src="preview" alt="作品上传预览" decoding="async" class="max-h-[36rem] w-full rounded-xl object-contain">

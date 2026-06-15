@@ -55,15 +55,15 @@ onBeforeUnmount(() => {
       class="fixed inset-0 z-[60] flex items-center justify-center bg-ink/82 px-4 py-8 backdrop-blur-xl"
       @click.self="emit('close')"
     >
-      <div class="grid w-full max-w-6xl gap-4 lg:grid-cols-[1.18fr_0.82fr]">
+      <div class="grid w-full max-w-6xl gap-4 md:grid-cols-[1.18fr_0.82fr]">
         <div class="art-frame bg-white/10 p-2 shadow-2xl">
           <img :src="artwork.image_url" :alt="artwork.title" decoding="async" class="max-h-[78vh] w-full rounded-xl object-contain">
         </div>
-        <div class="rounded-[1.25rem] bg-mist px-6 py-7 shadow-2xl">
+        <div class="rounded-[1.25rem] bg-mist px-5 py-6 shadow-2xl lg:px-6 lg:py-7">
           <div class="mb-6 flex items-start justify-between gap-4">
             <div>
               <p class="section-kicker">作品详情</p>
-              <h3 class="mt-3 font-display text-4xl leading-none">{{ artwork.title }}</h3>
+              <h3 class="mt-3 font-display text-3xl leading-none lg:text-4xl">{{ artwork.title }}</h3>
             </div>
             <div class="flex shrink-0 gap-2">
               <button class="button-primary px-4" @click="downloadOriginal">下载原图</button>

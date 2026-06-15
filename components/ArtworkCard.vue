@@ -27,12 +27,12 @@ defineEmits<{
           <span class="status-pill bg-white/80">{{ visibilityLabel[artwork.visibility] }}</span>
         </div>
       </div>
-      <div class="space-y-4 px-5 py-5">
+      <div class="space-y-3 px-4 py-4 lg:space-y-4 lg:px-5 lg:py-5">
         <div>
-          <h3 class="font-display text-2xl leading-tight">{{ artwork.title }}</h3>
-          <p class="mt-2 line-clamp-2 text-sm leading-7 text-ink/60">{{ artwork.description }}</p>
+          <h3 class="font-display text-xl leading-tight lg:text-2xl">{{ artwork.title }}</h3>
+          <p class="mt-2 line-clamp-2 text-xs leading-6 text-ink/60 lg:text-sm lg:leading-7">{{ artwork.description }}</p>
         </div>
-        <div class="flex items-center justify-between border-t border-ink/10 pt-4 text-xs font-bold text-ink/40">
+        <div class="flex items-center justify-between border-t border-ink/10 pt-3 text-xs font-bold text-ink/40 lg:pt-4">
           <span>{{ artwork.owner_name }}</span>
           <span>查看详情</span>
         </div>

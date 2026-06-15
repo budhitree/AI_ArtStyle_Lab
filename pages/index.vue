@@ -144,11 +144,11 @@ const loadMoreExhibitions = async () => {
 
 <template>
   <div class="shell space-y-10 md:space-y-12">
-    <section class="grid gap-5 lg:grid-cols-[0.9fr_1fr] lg:items-start">
+    <section class="grid gap-5 md:grid-cols-[0.9fr_1fr] md:items-start">
       <div class="flex flex-col border-y border-ink/10 pt-8 pb-5 md:pt-10 md:pb-5">
         <div>
           <p class="section-kicker">校园 AI 艺术展厅</p>
-          <h1 class="mt-5 max-w-4xl text-balance font-display text-5xl leading-[0.94] text-ink md:text-7xl">
+          <h1 class="mt-5 max-w-4xl text-balance font-display text-5xl leading-[0.94] text-ink md:text-[3.45rem] lg:text-7xl">
             校园里的 AI 艺术创作与线上展厅
           </h1>
           <p class="mt-7 max-w-2xl text-lg leading-8 text-ink/64">
@@ -165,15 +165,15 @@ const loadMoreExhibitions = async () => {
 
         <div class="mt-10 grid grid-cols-3 gap-3">
           <div class="border-l border-ink/15 pl-4">
-            <p class="font-display text-4xl">{{ publicArtworkCount }}</p>
+            <p class="font-display text-3xl lg:text-4xl">{{ publicArtworkCount }}</p>
             <p class="mt-1 text-xs font-bold text-ink/45">公开作品</p>
           </div>
           <div class="border-l border-ink/15 pl-4">
-            <p class="font-display text-4xl">{{ exhibitions.length }}{{ hasMoreExhibitions ? '+' : '' }}</p>
+            <p class="font-display text-3xl lg:text-4xl">{{ exhibitions.length }}{{ hasMoreExhibitions ? '+' : '' }}</p>
             <p class="mt-1 text-xs font-bold text-ink/45">发布展览</p>
           </div>
           <div class="border-l border-ink/15 pl-4">
-            <p class="font-display text-4xl">AI</p>
+            <p class="font-display text-3xl lg:text-4xl">AI</p>
             <p class="mt-1 text-xs font-bold text-ink/45">创作空间</p>
           </div>
         </div>
@@ -190,9 +190,9 @@ const loadMoreExhibitions = async () => {
             class="h-full w-full object-cover opacity-[0.92]"
           >
         </Transition>
-        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/82 to-transparent p-6 text-white md:p-8">
+        <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-ink/82 to-transparent p-5 text-white lg:p-8">
           <p class="text-xs font-extrabold text-white/60">推荐作品</p>
-          <h2 class="mt-3 max-w-lg font-display text-4xl leading-none">{{ spotlight?.title || 'AI ArtStyle Lab' }}</h2>
+          <h2 class="mt-3 max-w-lg font-display text-3xl leading-none lg:text-4xl">{{ spotlight?.title || 'AI ArtStyle Lab' }}</h2>
           <p class="mt-3 max-w-xl text-sm leading-7 text-white/70">{{ spotlight?.description || '一个面向校内师生的 AI 艺术创作、作品管理与主题展览空间。' }}</p>
         </div>
       </div>
@@ -204,7 +204,7 @@ const loadMoreExhibitions = async () => {
         title="公开作品"
         description="首页只展示允许公开的作品。点开卡片可以查看作品详情、Prompt 和作者。"
       />
-      <div v-if="artworks.length" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div v-if="artworks.length" class="grid gap-4 md:grid-cols-3 lg:gap-5">
         <ArtworkCard
           v-for="artwork in artworks"
           :key="artwork.id"

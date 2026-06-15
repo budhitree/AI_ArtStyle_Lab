@@ -127,7 +127,7 @@ const createExhibition = async () => {
     />
 
     <section class="space-y-6">
-      <div v-if="publicExhibitions.length" class="grid gap-6 lg:grid-cols-2">
+      <div v-if="publicExhibitions.length" class="grid gap-5 md:grid-cols-2 lg:gap-6">
         <ExhibitionCard
           v-for="exhibition in publicExhibitions"
           :key="exhibition.id"
@@ -146,7 +146,7 @@ const createExhibition = async () => {
       />
     </section>
 
-    <section v-if="auth.isAuthenticated && ['teacher', 'admin'].includes(auth.role || '')" class="grid gap-6 xl:grid-cols-[0.78fr_1.22fr]">
+    <section v-if="auth.isAuthenticated && ['teacher', 'admin'].includes(auth.role || '')" class="grid gap-5 md:grid-cols-[0.78fr_1.22fr] lg:gap-6">
       <div class="panel studio-grid px-6 py-8 md:px-8">
         <p class="section-kicker">新建展览</p>
         <h3 class="mt-4 font-display text-4xl leading-none">新建策展草稿</h3>

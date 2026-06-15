@@ -38,10 +38,10 @@ const submit = async () => {
 </script>
 
 <template>
-  <div class="shell grid gap-6 lg:grid-cols-[0.95fr_1.05fr]">
+  <div class="shell grid gap-5 md:grid-cols-[0.95fr_1.05fr] lg:gap-6">
     <section class="panel studio-grid px-6 py-8 md:px-10 md:py-10">
       <p class="section-kicker">账号入口</p>
-      <h1 class="mt-4 font-display text-5xl leading-none">进入校园艺术实验室</h1>
+      <h1 class="mt-4 font-display text-4xl leading-none lg:text-5xl">进入校园艺术实验室</h1>
       <p class="mt-5 max-w-xl text-base leading-8 text-ink/64">
         学生和教师可以在这里进入个人作品库、上传作品、参与 AI 创作与主题展览管理。
       </p>

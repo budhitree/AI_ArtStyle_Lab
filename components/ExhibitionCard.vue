@@ -10,7 +10,7 @@ defineProps<{
 <template>
   <NuxtLink :to="`/exhibitions/${exhibition.id}`" class="block">
     <article class="group grid overflow-hidden rounded-[1.25rem] border border-ink/10 bg-[rgba(255,252,244,0.86)] shadow-soft transition duration-300 hover:-translate-y-1 hover:shadow-card md:grid-cols-[0.95fr_1.05fr]">
-      <div class="relative min-h-64 overflow-hidden bg-ink/5">
+      <div class="relative min-h-52 overflow-hidden bg-ink/5 lg:min-h-64">
         <img
           :src="exhibition.cover_image_url || '/images/hero.png'"
           :alt="exhibition.title"
@@ -22,7 +22,7 @@ defineProps<{
           {{ exhibitionStatusLabel[exhibition.status] }}
         </span>
       </div>
-      <div class="flex min-h-64 flex-col justify-between px-6 py-6">
+      <div class="flex min-h-52 flex-col justify-between px-5 py-5 lg:min-h-64 lg:px-6 lg:py-6">
         <div class="space-y-4">
           <p class="section-kicker">主题展览</p>
           <h3 class="font-display text-4xl leading-none">{{ exhibition.title }}</h3>

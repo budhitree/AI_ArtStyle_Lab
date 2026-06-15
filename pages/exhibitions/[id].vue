@@ -227,9 +227,9 @@ const detachArtwork = (artwork: Artwork) => {
       :description="pageStatus"
     />
 
-    <section v-if="exhibition" class="grid gap-5 xl:grid-cols-[1.08fr_0.92fr]">
+    <section v-if="exhibition" class="grid gap-5 md:grid-cols-[1.08fr_0.92fr]">
       <div class="relative overflow-hidden rounded-[1.35rem] border border-ink/10 bg-ink shadow-card">
-        <img :src="exhibition.cover_image_url || '/images/hero.png'" :alt="exhibition.title" decoding="async" class="h-full min-h-[30rem] w-full object-cover opacity-[0.92]">
+        <img :src="exhibition.cover_image_url || '/images/hero.png'" :alt="exhibition.title" decoding="async" class="h-full min-h-[24rem] w-full object-cover opacity-[0.92] lg:min-h-[30rem]">
         <div class="absolute left-5 top-5 rounded-full px-3 py-1 text-[0.68rem] font-extrabold uppercase tracking-[0.18em] text-white backdrop-blur" :class="exhibition.status === 'published' ? 'bg-forest/85' : 'bg-ember/85'">
           {{ exhibitionStatusLabel[exhibition.status] }}
         </div>
@@ -237,7 +237,7 @@ const detachArtwork = (artwork: Artwork) => {
       <div class="flex flex-col justify-between border-y border-ink/10 py-8 md:py-10">
         <p class="section-kicker">展览详情</p>
         <div>
-          <h1 class="mt-4 font-display text-5xl leading-none md:text-6xl">{{ exhibition.title }}</h1>
+          <h1 class="mt-4 font-display text-4xl leading-none lg:text-6xl">{{ exhibition.title }}</h1>
           <p class="mt-6 text-lg leading-8 text-ink/64">{{ exhibition.description }}</p>
           <button
             v-if="exhibitionArtworks.length"
@@ -262,7 +262,7 @@ const detachArtwork = (artwork: Artwork) => {
         title="展览作品"
         description="公开访客可以直接浏览已加入展览的作品；策展人可继续调整挂画顺序和作品集合。"
       />
-      <div v-if="exhibitionArtworks.length" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div v-if="exhibitionArtworks.length" class="grid gap-4 md:grid-cols-3 lg:gap-5">
         <ArtworkCard
           v-for="artwork in exhibitionArtworks"
           :key="artwork.id"
@@ -280,8 +280,8 @@ const detachArtwork = (artwork: Artwork) => {
       />
     </section>
 
-    <section v-if="exhibition && canEdit" class="grid gap-6 xl:grid-cols-[0.82fr_1.18fr]">
-      <div class="panel sticky top-32 self-start px-6 py-8 md:px-8">
+    <section v-if="exhibition && canEdit" class="grid gap-5 md:grid-cols-[0.82fr_1.18fr] lg:gap-6">
+      <div class="panel sticky top-28 self-start px-5 py-6 lg:top-32 lg:px-8 lg:py-8">
         <p class="section-kicker">策展管理</p>
         <h2 class="mt-3 font-display text-4xl leading-none">策展控制台</h2>
         <div class="mt-6 grid gap-4">
@@ -307,7 +307,7 @@ const detachArtwork = (artwork: Artwork) => {
             可选 {{ selectableArtworkCount }} 件
           </span>
         </div>
-        <div v-if="remainingArtworks.length" class="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-8">
+        <div v-if="remainingArtworks.length" class="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
           <button
             v-for="artwork in remainingArtworks"
             :key="artwork.id"
