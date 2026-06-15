@@ -288,15 +288,21 @@ onBeforeUnmount(() => {
                 自动播放
                 <button class="immersive-control" type="button" @click="autoplay = !autoplay">{{ autoplay ? '开启' : '关闭' }}</button>
               </label>
-              <label class="flex items-center justify-between gap-4 text-sm font-bold text-white/68">
+              <div class="flex items-center justify-between gap-4 text-sm font-bold text-white/68">
                 播放速度
-                <select v-model.number="intervalSeconds" class="rounded-md border border-white/12 bg-white/8 px-3 py-2 text-sm text-white outline-none">
-                  <option :value="4">4 秒</option>
-                  <option :value="6">6 秒</option>
-                  <option :value="8">8 秒</option>
-                  <option :value="12">12 秒</option>
-                </select>
-              </label>
+                <div class="grid grid-cols-4 gap-1 rounded-lg border border-white/10 bg-black/22 p-1">
+                  <button
+                    v-for="seconds in [4, 6, 8, 12]"
+                    :key="seconds"
+                    type="button"
+                    class="immersive-speed-option"
+                    :class="intervalSeconds === seconds ? 'is-active' : ''"
+                    @click="intervalSeconds = seconds"
+                  >
+                    {{ seconds }} 秒
+                  </button>
+                </div>
+              </div>
             </div>
             <button class="immersive-control mt-6 w-full justify-center" type="button" @click="showSettings = false">关闭设置</button>
           </div>
@@ -317,13 +323,14 @@ onBeforeUnmount(() => {
   opacity: 0;
 }
 
-.immersive-control {
+.immersive-control,
+.immersive-speed-option {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.07);
-  padding: 0.55rem 0.9rem;
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -332,10 +339,36 @@ onBeforeUnmount(() => {
   backdrop-filter: blur(18px);
 }
 
+.immersive-control {
+  padding: 0.55rem 0.9rem;
+}
+
 .immersive-control:hover {
   transform: translateY(-1px);
   border-color: rgba(255, 255, 255, 0.25);
   background: rgba(255, 255, 255, 0.13);
+}
+
+.immersive-speed-option {
+  min-width: 2.8rem;
+  padding: 0.5rem 0.62rem;
+  border-color: transparent;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.58);
+  letter-spacing: 0;
+}
+
+.immersive-speed-option:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.immersive-speed-option.is-active {
+  border-color: rgba(180, 218, 255, 0.38);
+  background: rgba(180, 218, 255, 0.18);
+  color: rgba(232, 244, 255, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 .immersive-arrow {
@@ -358,11 +391,6 @@ onBeforeUnmount(() => {
 .immersive-arrow:hover {
   background: rgba(255, 255, 255, 0.13);
   transform: translateY(-50%) scale(1.02);
-}
-
-select option {
-  background: #141416;
-  color: white;
 }
 
 @media (max-width: 768px) {
