@@ -1,69 +1,73 @@
 @echo off
-title AI ArtStyle Lab - Startup
+setlocal
+
+title AI ArtStyle Lab Launcher
+
+set "MODE=%~1"
+if "%MODE%"=="" set "MODE=dev"
 
 echo ========================================
-echo   AI ArtStyle Lab - Starting Services
+echo   AI ArtStyle Lab Launcher
 echo ========================================
 echo.
 
-:: Check Node.js
 where node >nul 2>nul
-if %errorlevel% neq 0 (
-    echo [ERROR] Node.js not found. Please install Node.js first.
-    echo Download: https://nodejs.org/
+if errorlevel 1 (
+  echo [ERROR] Node.js not found. Please install Node.js first.
+  pause
+  exit /b 1
+)
+
+where npm >nul 2>nul
+if errorlevel 1 (
+  echo [ERROR] npm not found. Please install Node.js/npm first.
+  pause
+  exit /b 1
+)
+
+if not exist "node_modules" (
+  echo [INFO] node_modules not found. Installing dependencies...
+  call npm install
+  if errorlevel 1 (
+    echo [ERROR] npm install failed.
     pause
     exit /b 1
+  )
+  echo.
 )
 
-echo [1/4] Checking dependencies...
-if not exist "node_modules" (
-    echo [INFO] First run, installing dependencies...
-    call npm install
-    if %errorlevel% neq 0 (
-        echo [ERROR] Failed to install dependencies
-        pause
-        exit /b 1
-    )
-)
-echo [OK] Dependencies checked
-echo.
+if /I "%MODE%"=="preview" goto :preview
+if /I "%MODE%"=="dev" goto :dev
 
-:: Start backend
-echo [2/4] Starting backend server (Express)...
-start "AI Backend" cmd.exe /k "node server.js"
-timeout /t 2 >nul
-echo [OK] Backend started (port 3000)
-echo.
-
-:: Wait for backend
-echo [3/4] Waiting for backend...
-timeout /t 3 >nul
-
-:: Start frontend
-echo [4/4] Starting frontend dev server (Vite)...
-start "AI Frontend" cmd.exe /k "npm run dev"
-echo [OK] Frontend started
-echo.
-
-:: Open browser
-echo Opening browser...
-timeout /t 5 >nul
-start http://localhost:5173
-
-echo.
-echo ========================================
-echo   All services started!
-echo ========================================
-echo.
-echo   Frontend: http://localhost:5173
-echo   Backend:  http://localhost:3000
-echo.
-echo   Test Accounts:
-echo     Student: 20250101 / 123456
-echo     Teacher: 20250001 / 123456
-echo.
-echo   To stop: Close the two command windows
-echo ========================================
-echo.
-
+echo [ERROR] Unknown mode: %MODE%
+echo Usage:
+echo   start.bat
+echo   start.bat dev
+echo   start.bat preview
 pause
+exit /b 1
+
+:dev
+echo [INFO] Starting Nuxt dev server...
+start "AI ArtStyle Lab Dev" cmd /k "cd /d %~dp0 && npm run dev"
+echo [INFO] Opening browser in 5 seconds...
+timeout /t 5 >nul
+start http://localhost:3000
+echo [OK] Dev server launched.
+exit /b 0
+
+:preview
+echo [INFO] Building production bundle...
+call npm run build
+if errorlevel 1 (
+  echo [ERROR] Build failed.
+  pause
+  exit /b 1
+)
+echo [INFO] Starting preview server...
+start "AI ArtStyle Lab Preview" cmd /k "cd /d %~dp0 && node .output\server\index.mjs"
+echo [INFO] Opening browser in 5 seconds...
+timeout /t 5 >nul
+start http://localhost:3000
+echo [OK] Preview server launched.
+exit /b 0

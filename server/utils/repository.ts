@@ -1,0 +1,625 @@
+import type { Artwork, Exhibition, Profile } from '~/shared/types'
+import { useDemoState } from './demo-state'
+import { useLegacyState } from './legacy-state'
+import { isSupabaseConfigured, useSupabaseAdmin } from './supabase'
+
+function sortByDateDescending<T extends { created_at: string }>(items: T[]) {
+  return [...items].sort((a, b) => +new Date(b.created_at) - +new Date(a.created_at))
+}
+
+function uniqueIds(ids: string[]) {
+  return [...new Set(ids.filter(Boolean))]
+}
+
+function ensureCanEditArtwork(profile: Profile, artwork: Artwork) {
+  if (profile.role === 'admin' || artwork.owner_id === profile.id) {
+    return
+  }
+
+  throw createError({ statusCode: 403, statusMessage: 'No permission to edit this artwork.' })
+}
+
+function ensureCanEditExhibition(profile: Profile, exhibition: Exhibition) {
+  if (profile.role === 'admin' || exhibition.curator_id === profile.id) {
+    return
+  }
+
+  throw createError({ statusCode: 403, statusMessage: 'No permission to edit this exhibition.' })
+}
+
+function useLocalState() {
+  return useLegacyState() || useDemoState()
+}
+
+async function fetchProfilesMap(ids: string[]) {
+  const supabase = useSupabaseAdmin()
+  const { data } = await supabase.from('profiles').select('id,name').in('id', ids)
+  return new Map((data || []).map((item) => [item.id as string, item.name as string]))
+}
+
+async function fetchArtworkById(id: string) {
+  const supabase = useSupabaseAdmin()
+  const { data, error } = await supabase.from('artworks').select('*').eq('id', id).single()
+
+  if (error || !data) {
+    throw createError({ statusCode: 404, statusMessage: 'Artwork not found.' })
+  }
+
+  const profiles = await fetchProfilesMap([data.owner_id as string])
+  return toArtworkRecord(data, profiles.get(data.owner_id as string) || 'Unknown')
+}
+
+async function fetchExhibitionArtworkIds(id: string) {
+  const supabase = useSupabaseAdmin()
+  const { data, error } = await supabase
+    .from('exhibition_artworks')
+    .select('artwork_id')
+    .eq('exhibition_id', id)
+
+  if (error) {
+    throw createError({ statusCode: 500, statusMessage: error.message })
+  }
+
+  return uniqueIds((data || []).map((link) => link.artwork_id as string))
+}
+
+function toArtworkRecord(row: Record<string, unknown>, ownerName = 'Unknown'): Artwork {
+  return {
+    id: row.id as string,
+    title: row.title as string,
+    description: (row.description as string) || '',
+    prompt: (row.prompt as string | null) || null,
+    image_url: row.image_url as string,
+    thumbnail_url: (row.thumbnail_url as string | null) || (row.image_url as string),
+    owner_id: row.owner_id as string,
+    owner_name: ownerName,
+    source_type: row.source_type as Artwork['source_type'],
+    visibility: row.visibility as Artwork['visibility'],
+    created_at: row.created_at as string,
+    updated_at: row.updated_at as string
+  }
+}
+
+function toExhibitionRecord(row: Record<string, unknown>, curatorName = 'Unknown', artworkIds: string[] = []): Exhibition {
+  return {
+    id: row.id as string,
+    title: row.title as string,
+    description: (row.description as string) || '',
+    cover_image_url: (row.cover_image_url as string | null) || null,
+    status: row.status as Exhibition['status'],
+    curator_id: row.curator_id as string,
+    curator_name: curatorName,
+    artwork_ids: artworkIds,
+    created_at: row.created_at as string,
+    updated_at: row.updated_at as string
+  }
+}
+
+interface ListOptions {
+  excludeIds?: string[]
+  ids?: string[]
+  limit?: number
+  offset?: number
+  random?: boolean
+  sourceType?: Artwork['source_type']
+  visibility?: Artwork['visibility']
+}
+
+type ArtworkScope = 'public' | 'mine' | 'accessible' | 'curation'
+
+function shuffleItems<T>(items: T[]) {
+  const shuffled = [...items]
+  for (let index = shuffled.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1))
+    ;[shuffled[index], shuffled[swapIndex]] = [shuffled[swapIndex], shuffled[index]]
+  }
+  return shuffled
+}
+
+function canUseArtworkForScope(item: Artwork, scope: ArtworkScope, viewer: Profile | null | undefined, owner?: Profile) {
+  if (scope === 'mine') {
+    return Boolean(viewer && item.owner_id === viewer.id)
+  }
+  if (scope === 'curation') {
+    if (viewer?.role === 'admin') {
+      return true
+    }
+    return Boolean(viewer?.role === 'teacher' && (owner?.role === 'student' || item.owner_id === viewer.id))
+  }
+  if (scope === 'accessible') {
+    return item.visibility === 'public' || Boolean(viewer && (viewer.role === 'admin' || item.owner_id === viewer.id))
+  }
+  return item.visibility === 'public'
+}
+
+function filterArtworks(artworks: Artwork[], scope: ArtworkScope, viewer?: Profile | null, options: ListOptions = {}, profiles: Profile[] = []) {
+  const profileMap = new Map(profiles.map((profile) => [profile.id, profile]))
+  return artworks.filter((item) => {
+    if (options.ids?.length && !options.ids.includes(item.id)) {
+      return false
+    }
+    if (options.excludeIds?.length && options.excludeIds.includes(item.id)) {
+      return false
+    }
+    if (options.visibility && item.visibility !== options.visibility) {
+      return false
+    }
+    if (options.sourceType && item.source_type !== options.sourceType) {
+      return false
+    }
+    return canUseArtworkForScope(item, scope, viewer, profileMap.get(item.owner_id))
+  })
+}
+
+async function fetchProfileIdsByRole(role: Profile['role']) {
+  const supabase = useSupabaseAdmin()
+  const { data, error } = await supabase.from('profiles').select('id').eq('role', role)
+  if (error) {
+    throw createError({ statusCode: 500, statusMessage: error.message })
+  }
+  return (data || []).map((item) => item.id as string)
+}
+
+export async function countArtworks(scope: ArtworkScope, viewer?: Profile | null, options: ListOptions = {}) {
+  if (!isSupabaseConfigured()) {
+    const state = useLocalState()
+    return filterArtworks(state.artworks, scope, viewer, options, state.profiles).length
+  }
+
+  const supabase = useSupabaseAdmin()
+  let query = supabase.from('artworks').select('id', { count: 'exact', head: true })
+  if (options.ids?.length) {
+    query = query.in('id', options.ids)
+  }
+  if (options.excludeIds?.length) {
+    query = query.not('id', 'in', `(${options.excludeIds.join(',')})`)
+  }
+  if (options.visibility) {
+    query = query.eq('visibility', options.visibility)
+  }
+  if (options.sourceType) {
+    query = query.eq('source_type', options.sourceType)
+  }
+  if (scope === 'mine' && viewer) {
+    query = query.eq('owner_id', viewer.id)
+  } else if (scope === 'curation' && viewer?.role === 'teacher') {
+    const studentIds = await fetchProfileIdsByRole('student')
+    const ownerIds = [...new Set([...studentIds, viewer.id])]
+    if (!ownerIds.length) {
+      return 0
+    }
+    query = query.in('owner_id', ownerIds)
+  } else if (scope === 'curation' && viewer?.role !== 'admin') {
+    return 0
+  } else if (scope === 'accessible' && viewer?.role === 'admin') {
+    query = query
+  } else if (scope === 'accessible' && viewer) {
+    query = query.or(`visibility.eq.public,owner_id.eq.${viewer.id}`)
+  } else {
+    query = query.eq('visibility', 'public')
+  }
+
+  const { count, error } = await query
+  if (error) {
+    throw createError({ statusCode: 500, statusMessage: error.message })
+  }
+  return count ?? 0
+}
+
+export async function listArtworks(scope: ArtworkScope, viewer?: Profile | null, options: ListOptions = {}): Promise<Artwork[]> {
+  if (!isSupabaseConfigured()) {
+    const state = useLocalState()
+    const filtered = filterArtworks(state.artworks, scope, viewer, options, state.profiles)
+    const sorted = options.random ? shuffleItems(filtered) : sortByDateDescending(filtered)
+    const start = options.offset ?? 0
+    return options.limit ? sorted.slice(start, start + options.limit) : sorted.slice(start)
+  }
+
+  const supabase = useSupabaseAdmin()
+  if (options.random && !options.ids?.length) {
+    let idQuery = supabase.from('artworks').select('id')
+    if (options.excludeIds?.length) {
+      idQuery = idQuery.not('id', 'in', `(${options.excludeIds.join(',')})`)
+    }
+    if (options.visibility) {
+      idQuery = idQuery.eq('visibility', options.visibility)
+    }
+    if (options.sourceType) {
+      idQuery = idQuery.eq('source_type', options.sourceType)
+    }
+    if (scope === 'public') {
+      idQuery = idQuery.eq('visibility', 'public')
+    }
+
+    const { data: idRows, error: idError } = await idQuery
+    if (idError) {
+      throw createError({ statusCode: 500, statusMessage: idError.message })
+    }
+
+    const ids = shuffleItems((idRows || []).map((row) => row.id as string)).slice(0, options.limit)
+    if (!ids.length) {
+      return []
+    }
+
+    const records: Artwork[] = await listArtworks(scope, viewer, { ...options, ids, limit: undefined, offset: undefined, random: false })
+    const recordMap = new Map(records.map((item: Artwork) => [item.id, item]))
+    return ids.map((id) => recordMap.get(id)).filter(Boolean) as Artwork[]
+  }
+
+  let query = supabase.from('artworks').select('*')
+  if (options.ids?.length) {
+    query = query.in('id', options.ids)
+  }
+  if (options.excludeIds?.length) {
+    query = query.not('id', 'in', `(${options.excludeIds.join(',')})`)
+  }
+  if (options.visibility) {
+    query = query.eq('visibility', options.visibility)
+  }
+  if (options.sourceType) {
+    query = query.eq('source_type', options.sourceType)
+  }
+  if (scope === 'mine' && viewer) {
+    query = query.eq('owner_id', viewer.id)
+  } else if (scope === 'curation' && viewer?.role === 'teacher') {
+    const studentIds = await fetchProfileIdsByRole('student')
+    const ownerIds = [...new Set([...studentIds, viewer.id])]
+    if (!ownerIds.length) {
+      return []
+    }
+    query = query.in('owner_id', ownerIds)
+  } else if (scope === 'curation' && viewer?.role !== 'admin') {
+    return []
+  } else if (scope === 'accessible' && viewer?.role === 'admin') {
+    query = query
+  } else if (scope === 'accessible' && viewer) {
+    query = query.or(`visibility.eq.public,owner_id.eq.${viewer.id}`)
+  } else {
+    query = query.eq('visibility', 'public')
+  }
+  if (options.limit) {
+    const start = options.offset ?? 0
+    query = query.range(start, start + options.limit - 1)
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false })
+  if (error) {
+    throw createError({ statusCode: 500, statusMessage: error.message })
+  }
+
+  const ownerIds = [...new Set((data || []).map((row) => row.owner_id as string))]
+  const profiles = ownerIds.length ? await fetchProfilesMap(ownerIds) : new Map()
+
+  return (data || []).map((row) => toArtworkRecord(row, profiles.get(row.owner_id as string) || 'Unknown'))
+}
+
+export async function createArtworkEntry(
+  input: Pick<Artwork, 'title' | 'description' | 'prompt' | 'image_url' | 'thumbnail_url' | 'source_type' | 'visibility'>,
+  viewer: Profile
+) {
+  const now = new Date().toISOString()
+
+  if (!isSupabaseConfigured()) {
+    const state = useLocalState()
+    const artwork: Artwork = {
+      id: crypto.randomUUID(),
+      title: input.title,
+      description: input.description,
+      prompt: input.prompt,
+      image_url: input.image_url,
+      thumbnail_url: input.thumbnail_url || input.image_url,
+      owner_id: viewer.id,
+      owner_name: viewer.name,
+      source_type: input.source_type,
+      visibility: input.visibility,
+      created_at: now,
+      updated_at: now
+    }
+    state.artworks.unshift(artwork)
+    return artwork
+  }
+
+  const supabase = useSupabaseAdmin()
+  const payload = {
+    title: input.title,
+    description: input.description,
+    prompt: input.prompt,
+    image_url: input.image_url,
+    thumbnail_url: input.thumbnail_url || input.image_url,
+    owner_id: viewer.id,
+    source_type: input.source_type,
+    visibility: input.visibility
+  }
+
+  const { data, error } = await supabase.from('artworks').insert(payload).select('*').single()
+  if (error || !data) {
+    throw createError({ statusCode: 500, statusMessage: error?.message || 'Failed to create artwork.' })
+  }
+
+  return toArtworkRecord(data, viewer.name)
+}
+
+export async function updateArtworkEntry(id: string, updates: Partial<Artwork>, viewer: Profile) {
+  if (!isSupabaseConfigured()) {
+    const state = useLocalState()
+    const artwork = state.artworks.find((item) => item.id === id)
+    if (!artwork) {
+      throw createError({ statusCode: 404, statusMessage: 'Artwork not found.' })
+    }
+    ensureCanEditArtwork(viewer, artwork)
+    Object.assign(artwork, updates, { updated_at: new Date().toISOString() })
+    return artwork
+  }
+
+  const artwork = await fetchArtworkById(id)
+  ensureCanEditArtwork(viewer, artwork)
+
+  const supabase = useSupabaseAdmin()
+  const { data, error } = await supabase
+    .from('artworks')
+    .update({
+      title: updates.title,
+      description: updates.description,
+      prompt: updates.prompt,
+      visibility: updates.visibility,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', id)
+    .select('*')
+    .single()
+
+  if (error || !data) {
+    throw createError({ statusCode: 500, statusMessage: error?.message || 'Failed to update artwork.' })
+  }
+
+  return toArtworkRecord(data, artwork.owner_name)
+}
+
+export async function deleteArtworkEntry(id: string, viewer: Profile) {
+  if (!isSupabaseConfigured()) {
+    const state = useLocalState()
+    const artwork = state.artworks.find((item) => item.id === id)
+    if (!artwork) {
+      throw createError({ statusCode: 404, statusMessage: 'Artwork not found.' })
+    }
+    ensureCanEditArtwork(viewer, artwork)
+    state.artworks = state.artworks.filter((item) => item.id !== id)
+    state.exhibitions = state.exhibitions.map((item) => ({
+      ...item,
+      artwork_ids: item.artwork_ids.filter((artworkId) => artworkId !== id)
+    }))
+    return { success: true }
+  }
+
+  const supabase = useSupabaseAdmin()
+  const artwork = await fetchArtworkById(id)
+  ensureCanEditArtwork(viewer, artwork)
+
+  const { error } = await supabase.from('artworks').delete().eq('id', id)
+  if (error) {
+    throw createError({ statusCode: 500, statusMessage: error.message })
+  }
+  return { success: true }
+}
+
+export async function listExhibitions(scope: 'public' | 'mine', viewer?: Profile | null, options: ListOptions = {}) {
+  if (!isSupabaseConfigured()) {
+    const state = useLocalState()
+    const exhibitions = scope === 'mine' && viewer
+      ? state.exhibitions.filter((item) => item.curator_id === viewer.id || viewer.role === 'admin')
+      : state.exhibitions.filter((item) => item.status === 'published')
+    const sorted = sortByDateDescending(exhibitions)
+    const start = options.offset ?? 0
+    const page = options.limit ? sorted.slice(start, start + options.limit) : sorted.slice(start)
+    return page.map((item) => ({
+      ...item,
+      artwork_ids: uniqueIds(item.artwork_ids)
+    }))
+  }
+
+  const supabase = useSupabaseAdmin()
+  let query = supabase.from('exhibitions').select('*')
+  if (scope === 'mine' && viewer?.role === 'admin') {
+    query = query
+  } else {
+    query = scope === 'mine' && viewer ? query.eq('curator_id', viewer.id) : query.eq('status', 'published')
+  }
+  if (options.limit) {
+    const start = options.offset ?? 0
+    query = query.range(start, start + options.limit - 1)
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false })
+  if (error) {
+    throw createError({ statusCode: 500, statusMessage: error.message })
+  }
+
+  const exhibitionIds = (data || []).map((item) => item.id as string)
+  const curatorIds = [...new Set((data || []).map((row) => row.curator_id as string))]
+  const profiles = curatorIds.length ? await fetchProfilesMap(curatorIds) : new Map()
+
+  const { data: junctions } = exhibitionIds.length
+    ? await supabase.from('exhibition_artworks').select('*').in('exhibition_id', exhibitionIds)
+    : { data: [] as Array<{ exhibition_id: string, artwork_id: string }> }
+
+  return (data || []).map((row) =>
+    toExhibitionRecord(
+      row,
+      profiles.get(row.curator_id as string) || 'Unknown',
+      uniqueIds((junctions || []).filter((link) => link.exhibition_id === row.id).map((link) => link.artwork_id))
+    )
+  )
+}
+
+export async function getExhibitionById(id: string, viewer?: Profile | null) {
+  if (!isSupabaseConfigured()) {
+    const state = useLocalState()
+    const item = state.exhibitions.find((entry) => entry.id === id)
+    if (!item) {
+      throw createError({ statusCode: 404, statusMessage: 'Exhibition not found.' })
+    }
+
+    if (item.status === 'draft' && (!viewer || (viewer.role !== 'admin' && viewer.id !== item.curator_id))) {
+      throw createError({ statusCode: 403, statusMessage: 'Exhibition is not public yet.' })
+    }
+
+    return {
+      ...item,
+      artwork_ids: uniqueIds(item.artwork_ids)
+    }
+  }
+
+  const supabase = useSupabaseAdmin()
+  const { data, error } = await supabase.from('exhibitions').select('*').eq('id', id).single()
+  if (error || !data) {
+    throw createError({ statusCode: 404, statusMessage: 'Exhibition not found.' })
+  }
+
+  const exhibition = toExhibitionRecord(
+    data,
+    (await fetchProfilesMap([data.curator_id as string])).get(data.curator_id as string) || 'Unknown',
+    await fetchExhibitionArtworkIds(id)
+  )
+
+  if (exhibition.status === 'draft' && (!viewer || (viewer.role !== 'admin' && viewer.id !== exhibition.curator_id))) {
+    throw createError({ statusCode: 403, statusMessage: 'Exhibition is not public yet.' })
+  }
+
+  return exhibition
+}
+
+export async function createExhibitionEntry(
+  input: Pick<Exhibition, 'title' | 'description' | 'cover_image_url' | 'artwork_ids'>,
+  viewer: Profile
+) {
+  if (!['teacher', 'admin'].includes(viewer.role)) {
+    throw createError({ statusCode: 403, statusMessage: 'Only teachers or admins can create exhibitions.' })
+  }
+
+  const now = new Date().toISOString()
+  const artworkIds = uniqueIds(input.artwork_ids)
+
+  if (!isSupabaseConfigured()) {
+    const state = useLocalState()
+    const exhibition: Exhibition = {
+      id: crypto.randomUUID(),
+      title: input.title,
+      description: input.description,
+      cover_image_url: input.cover_image_url,
+      status: 'draft',
+      curator_id: viewer.id,
+      curator_name: viewer.name,
+      artwork_ids: artworkIds,
+      created_at: now,
+      updated_at: now
+    }
+    state.exhibitions.unshift(exhibition)
+    return exhibition
+  }
+
+  const supabase = useSupabaseAdmin()
+  const { data, error } = await supabase
+    .from('exhibitions')
+    .insert({
+      title: input.title,
+      description: input.description,
+      cover_image_url: input.cover_image_url,
+      status: 'draft',
+      curator_id: viewer.id
+    })
+    .select('*')
+    .single()
+
+  if (error || !data) {
+    throw createError({ statusCode: 500, statusMessage: error?.message || 'Failed to create exhibition.' })
+  }
+
+  if (artworkIds.length) {
+    await supabase.from('exhibition_artworks').insert(artworkIds.map((artworkId) => ({
+      exhibition_id: data.id,
+      artwork_id: artworkId
+    })))
+  }
+
+  return toExhibitionRecord(data, viewer.name, artworkIds)
+}
+
+export async function updateExhibitionEntry(id: string, updates: Partial<Exhibition>, viewer: Profile) {
+  const exhibition = await getExhibitionById(id, viewer)
+  ensureCanEditExhibition(viewer, exhibition)
+  const artworkIds = Array.isArray(updates.artwork_ids) ? uniqueIds(updates.artwork_ids) : undefined
+
+  if (!isSupabaseConfigured()) {
+    const state = useLocalState()
+    const target = state.exhibitions.find((item) => item.id === id)!
+    Object.assign(target, updates, {
+      artwork_ids: artworkIds ?? target.artwork_ids,
+      updated_at: new Date().toISOString()
+    })
+    return target
+  }
+
+  const payload: Record<string, unknown> = {
+    updated_at: new Date().toISOString()
+  }
+  if (updates.title !== undefined) {
+    payload.title = updates.title
+  }
+  if (updates.description !== undefined) {
+    payload.description = updates.description
+  }
+  if (updates.cover_image_url !== undefined) {
+    payload.cover_image_url = updates.cover_image_url
+  }
+  if (updates.status !== undefined) {
+    payload.status = updates.status
+  }
+
+  const supabase = useSupabaseAdmin()
+  const { data, error } = await supabase
+    .from('exhibitions')
+    .update(payload)
+    .eq('id', id)
+    .select('*')
+    .single()
+
+  if (error || !data) {
+    throw createError({ statusCode: 500, statusMessage: error?.message || 'Failed to update exhibition.' })
+  }
+
+  if (artworkIds) {
+    await supabase.from('exhibition_artworks').delete().eq('exhibition_id', id)
+    if (artworkIds.length) {
+      await supabase.from('exhibition_artworks').insert(artworkIds.map((artworkId) => ({
+        exhibition_id: id,
+        artwork_id: artworkId
+      })))
+    }
+  }
+
+  return toExhibitionRecord(data, exhibition.curator_name, artworkIds ?? exhibition.artwork_ids)
+}
+
+export async function publishExhibitionEntry(id: string, viewer: Profile) {
+  return await updateExhibitionEntry(id, { status: 'published' }, viewer)
+}
+
+export async function deleteExhibitionEntry(id: string, viewer: Profile) {
+  const exhibition = await getExhibitionById(id, viewer)
+  ensureCanEditExhibition(viewer, exhibition)
+
+  if (!isSupabaseConfigured()) {
+    const state = useLocalState()
+    state.exhibitions = state.exhibitions.filter((item) => item.id !== id)
+    return { success: true }
+  }
+
+  const supabase = useSupabaseAdmin()
+  await supabase.from('exhibition_artworks').delete().eq('exhibition_id', id)
+  const { error } = await supabase.from('exhibitions').delete().eq('id', id)
+
+  if (error) {
+    throw createError({ statusCode: 500, statusMessage: error.message })
+  }
+  return { success: true }
+}
