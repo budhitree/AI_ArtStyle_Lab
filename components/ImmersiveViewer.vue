@@ -140,108 +140,110 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <Transition name="immersive-fade">
-    <div
-      v-if="modelValue"
-      class="fixed inset-0 z-[90] overflow-hidden bg-black text-white"
-      :class="{ 'cursor-none': !showChrome }"
-      @mousemove="resetIdleChrome"
-      @click="resetIdleChrome"
-    >
+  <Teleport to="body">
+    <Transition name="immersive-fade">
       <div
-        class="pointer-events-none absolute inset-0 z-0 opacity-70"
-        :style="{ backgroundImage: currentArtwork ? `radial-gradient(circle at 50% 38%, rgba(255,255,255,0.08), transparent 36%), linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.9))` : '' }"
-      />
-
-      <div class="relative z-10 flex min-h-screen flex-col">
-        <div
-          class="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between px-5 py-5 transition duration-300 md:px-10 md:py-8"
-          :class="showChrome ? 'opacity-100' : 'opacity-0'"
-        >
-          <div class="pointer-events-auto">
-            <p class="text-[0.68rem] font-extrabold uppercase tracking-[0.2em] text-white/42">{{ title }}</p>
-            <p class="mt-2 text-xs font-bold tracking-[0.16em] text-white/42">{{ counter }}</p>
-          </div>
-          <div class="pointer-events-auto flex gap-2">
-            <button class="immersive-control" type="button" @click="showSettings = !showSettings">设置</button>
-            <button class="immersive-control" type="button" @click="close">退出</button>
-          </div>
-        </div>
-
-        <main class="grid min-h-screen grid-rows-[1fr_auto] items-center px-4 pb-8 pt-20 md:px-10 md:pb-10">
-          <div v-if="currentArtwork" class="mx-auto flex w-full max-w-7xl items-center justify-center">
-            <button
-              class="immersive-arrow left-4 md:left-8"
-              type="button"
-              :class="showChrome ? 'opacity-100' : 'opacity-0'"
-              @click.stop="previous"
-            >
-              上一张
-            </button>
-            <img
-              :key="currentArtwork.id"
-              :src="currentArtwork.image_url"
-              :alt="currentArtwork.title"
-              decoding="async"
-              class="max-h-[68vh] max-w-full rounded-sm object-contain drop-shadow-[0_28px_70px_rgba(0,0,0,0.65)]"
-            >
-            <button
-              class="immersive-arrow right-4 md:right-8"
-              type="button"
-              :class="showChrome ? 'opacity-100' : 'opacity-0'"
-              @click.stop="next"
-            >
-              下一张
-            </button>
-          </div>
-
-          <div v-else class="mx-auto max-w-xl text-center">
-            <p class="text-sm font-bold text-white/50">暂无可播放作品</p>
-          </div>
-
-          <section
-            v-if="currentArtwork"
-            class="mx-auto mt-8 w-full max-w-3xl text-center transition duration-300"
-            :class="showChrome ? 'opacity-100 translate-y-0' : 'translate-y-3 opacity-0'"
-          >
-            <div class="flex flex-wrap items-baseline justify-center gap-x-3 gap-y-1">
-              <h2 class="font-display text-3xl leading-none text-white md:text-5xl">{{ currentArtwork.title }}</h2>
-              <span class="text-[0.7rem] font-extrabold uppercase tracking-[0.18em] text-white/40">{{ currentArtwork.owner_name }}</span>
-            </div>
-            <p class="mx-auto mt-4 max-w-2xl text-sm leading-7 text-white/58">
-              {{ currentArtwork.prompt || currentArtwork.description || '作品说明暂未填写。' }}
-            </p>
-          </section>
-        </main>
-      </div>
-
-      <div
-        v-if="showSettings"
-        class="fixed inset-0 z-30 grid place-items-center bg-black/62 px-4 backdrop-blur-sm"
-        @click.self="showSettings = false"
+        v-if="modelValue"
+        class="fixed inset-0 z-[9999] overflow-hidden bg-black text-white"
+        :class="{ 'cursor-none': !showChrome }"
+        @mousemove="resetIdleChrome"
+        @click="resetIdleChrome"
       >
-        <div class="w-full max-w-sm rounded-xl border border-white/10 bg-[#141416]/95 px-6 py-6 shadow-2xl">
-          <h3 class="font-display text-2xl leading-none text-white">沉浸模式设置</h3>
-          <div class="mt-6 space-y-4">
-            <label class="flex items-center justify-between gap-4 border-b border-white/8 pb-4 text-sm font-bold text-white/68">
-              自动播放
-              <button class="immersive-control" type="button" @click="autoplay = !autoplay">{{ autoplay ? '开启' : '关闭' }}</button>
-            </label>
-            <label class="flex items-center justify-between gap-4 text-sm font-bold text-white/68">
-              播放速度
-              <select v-model.number="intervalSeconds" class="rounded-md border border-white/12 bg-white/8 px-3 py-2 text-sm text-white outline-none">
-                <option :value="4">4 秒</option>
-                <option :value="6">6 秒</option>
-                <option :value="8">8 秒</option>
-                <option :value="12">12 秒</option>
-              </select>
-            </label>
+        <div
+          class="pointer-events-none absolute inset-0 z-0 opacity-70"
+          :style="{ backgroundImage: currentArtwork ? `radial-gradient(circle at 50% 38%, rgba(255,255,255,0.08), transparent 36%), linear-gradient(180deg, rgba(0,0,0,0.2), rgba(0,0,0,0.9))` : '' }"
+        />
+
+        <div class="relative z-10 flex min-h-screen flex-col">
+          <div
+            class="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between px-5 py-5 transition duration-300 md:px-10 md:py-8"
+            :class="showChrome ? 'opacity-100' : 'opacity-0'"
+          >
+            <div class="pointer-events-auto">
+              <p class="text-[0.68rem] font-extrabold uppercase tracking-[0.2em] text-white/42">{{ title }}</p>
+              <p class="mt-2 text-xs font-bold tracking-[0.16em] text-white/42">{{ counter }}</p>
+            </div>
+            <div class="pointer-events-auto flex gap-2">
+              <button class="immersive-control" type="button" @click="showSettings = !showSettings">设置</button>
+              <button class="immersive-control" type="button" @click="close">退出</button>
+            </div>
           </div>
-          <button class="immersive-control mt-6 w-full justify-center" type="button" @click="showSettings = false">关闭设置</button>
+
+          <main class="grid min-h-screen grid-rows-[1fr_auto] items-center px-4 pb-8 pt-20 md:px-10 md:pb-10">
+            <div v-if="currentArtwork" class="mx-auto flex w-full max-w-7xl items-center justify-center">
+              <button
+                class="immersive-arrow left-4 md:left-8"
+                type="button"
+                :class="showChrome ? 'opacity-100' : 'opacity-0'"
+                @click.stop="previous"
+              >
+                上一张
+              </button>
+              <img
+                :key="currentArtwork.id"
+                :src="currentArtwork.image_url"
+                :alt="currentArtwork.title"
+                decoding="async"
+                class="max-h-[68vh] max-w-full rounded-sm object-contain drop-shadow-[0_28px_70px_rgba(0,0,0,0.65)]"
+              >
+              <button
+                class="immersive-arrow right-4 md:right-8"
+                type="button"
+                :class="showChrome ? 'opacity-100' : 'opacity-0'"
+                @click.stop="next"
+              >
+                下一张
+              </button>
+            </div>
+
+            <div v-else class="mx-auto max-w-xl text-center">
+              <p class="text-sm font-bold text-white/50">暂无可播放作品</p>
+            </div>
+
+            <section
+              v-if="currentArtwork"
+              class="mx-auto mt-8 w-full max-w-3xl text-center transition duration-300"
+              :class="showChrome ? 'opacity-100 translate-y-0' : 'translate-y-3 opacity-0'"
+            >
+              <div class="flex flex-wrap items-baseline justify-center gap-x-3 gap-y-1">
+                <h2 class="font-display text-3xl leading-none text-white md:text-5xl">{{ currentArtwork.title }}</h2>
+                <span class="text-[0.7rem] font-extrabold uppercase tracking-[0.18em] text-white/40">{{ currentArtwork.owner_name }}</span>
+              </div>
+              <p class="mx-auto mt-4 max-w-2xl text-sm leading-7 text-white/58">
+                {{ currentArtwork.prompt || currentArtwork.description || '作品说明暂未填写。' }}
+              </p>
+            </section>
+          </main>
+        </div>
+
+        <div
+          v-if="showSettings"
+          class="fixed inset-0 z-30 grid place-items-center bg-black/62 px-4 backdrop-blur-sm"
+          @click.self="showSettings = false"
+        >
+          <div class="w-full max-w-sm rounded-xl border border-white/10 bg-[#141416]/95 px-6 py-6 shadow-2xl">
+            <h3 class="font-display text-2xl leading-none text-white">沉浸模式设置</h3>
+            <div class="mt-6 space-y-4">
+              <label class="flex items-center justify-between gap-4 border-b border-white/8 pb-4 text-sm font-bold text-white/68">
+                自动播放
+                <button class="immersive-control" type="button" @click="autoplay = !autoplay">{{ autoplay ? '开启' : '关闭' }}</button>
+              </label>
+              <label class="flex items-center justify-between gap-4 text-sm font-bold text-white/68">
+                播放速度
+                <select v-model.number="intervalSeconds" class="rounded-md border border-white/12 bg-white/8 px-3 py-2 text-sm text-white outline-none">
+                  <option :value="4">4 秒</option>
+                  <option :value="6">6 秒</option>
+                  <option :value="8">8 秒</option>
+                  <option :value="12">12 秒</option>
+                </select>
+              </label>
+            </div>
+            <button class="immersive-control mt-6 w-full justify-center" type="button" @click="showSettings = false">关闭设置</button>
+          </div>
         </div>
       </div>
-    </div>
-  </Transition>
+    </Transition>
+  </Teleport>
 </template>
 
 <style scoped>
