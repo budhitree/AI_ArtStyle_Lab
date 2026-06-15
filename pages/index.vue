@@ -5,9 +5,11 @@ const selectedArtwork = ref<Artwork | null>(null)
 const artworkPageSize = 24
 const exhibitionPageSize = 6
 const artworks = ref<Artwork[]>([])
+const immersiveArtworks = ref<Artwork[]>([])
 const exhibitions = ref<Exhibition[]>([])
 const publicArtworkCount = ref(0)
 const artworkBusy = ref(false)
+const immersiveBusy = ref(false)
 const exhibitionBusy = ref(false)
 const hasMoreArtworks = ref(false)
 const hasMoreExhibitions = ref(false)
@@ -23,6 +25,7 @@ watch(bootstrap, (value) => {
   const initialExhibitions = value?.exhibitions ?? []
   publicArtworkCount.value = value?.publicArtworkCount ?? initialArtworks.length
   artworks.value = initialArtworks.slice(0, artworkPageSize)
+  immersiveArtworks.value = initialArtworks
   exhibitions.value = initialExhibitions.slice(0, exhibitionPageSize)
   hasMoreArtworks.value = publicArtworkCount.value > artworks.value.length
   hasMoreExhibitions.value = initialExhibitions.length > exhibitionPageSize
@@ -66,11 +69,33 @@ const onSelectArtwork = (artwork: Artwork) => {
   selectedArtwork.value = artwork
 }
 
-const openImmersive = (artwork?: Artwork | null) => {
-  if (!artworks.value.length) {
+const ensureImmersiveArtworks = async () => {
+  if (immersiveBusy.value || immersiveArtworks.value.length >= publicArtworkCount.value) {
     return
   }
-  const index = artwork ? artworks.value.findIndex((item) => item.id === artwork.id) : spotlightIndex.value
+
+  immersiveBusy.value = true
+  try {
+    immersiveArtworks.value = await $fetch<Artwork[]>('/api/artworks', {
+      query: {
+        random: true
+      }
+    })
+  } catch {
+    immersiveArtworks.value = immersiveArtworks.value.length ? immersiveArtworks.value : artworks.value
+  } finally {
+    immersiveBusy.value = false
+  }
+}
+
+const openImmersive = async (artwork?: Artwork | null) => {
+  if (!artworks.value.length && !immersiveArtworks.value.length) {
+    return
+  }
+
+  await ensureImmersiveArtworks()
+  const gallery = immersiveArtworks.value.length ? immersiveArtworks.value : artworks.value
+  const index = artwork ? gallery.findIndex((item) => item.id === artwork.id) : spotlightIndex.value
   immersiveStartIndex.value = index >= 0 ? index : 0
   immersiveOpen.value = true
 }
@@ -132,7 +157,9 @@ const loadMoreExhibitions = async () => {
           <div class="mt-8 flex flex-wrap gap-3">
             <NuxtLink class="button-primary" to="/create">进入创作工作台</NuxtLink>
             <NuxtLink class="button-secondary" to="/exhibitions">浏览线上展厅</NuxtLink>
-            <button class="button-secondary" type="button" :disabled="!artworks.length" @click="openImmersive(spotlight)">沉浸模式观看</button>
+            <button class="button-secondary" type="button" :disabled="!artworks.length || immersiveBusy" @click="openImmersive(spotlight)">
+              {{ immersiveBusy ? '准备中...' : '沉浸模式观看' }}
+            </button>
           </div>
         </div>
 
@@ -177,9 +204,6 @@ const loadMoreExhibitions = async () => {
         title="公开作品"
         description="首页只展示允许公开的作品。点开卡片可以查看作品详情、Prompt 和作者。"
       />
-      <div v-if="artworks.length" class="flex justify-end">
-        <button class="button-secondary" type="button" @click="openImmersive()">沉浸模式观看</button>
-      </div>
       <div v-if="artworks.length" class="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
         <ArtworkCard
           v-for="artwork in artworks"
@@ -228,7 +252,7 @@ const loadMoreExhibitions = async () => {
     <ArtworkViewer :artwork="selectedArtwork" @close="selectedArtwork = null" />
     <ImmersiveViewer
       v-model="immersiveOpen"
-      :artworks="artworks"
+      :artworks="immersiveArtworks.length ? immersiveArtworks : artworks"
       :initial-index="immersiveStartIndex"
       title="公共画廊沉浸模式"
     />
