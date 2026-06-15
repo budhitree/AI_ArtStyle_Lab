@@ -171,24 +171,6 @@ const loadMoreExhibitions = async () => {
       </div>
     </section>
 
-    <section class="grid gap-4 md:grid-cols-3">
-      <div class="muted-panel px-6 py-6">
-        <p class="section-kicker">01</p>
-        <h3 class="mt-3 font-display text-3xl">AI 创作工作台</h3>
-        <p class="mt-3 text-sm leading-7 text-ink/62">用结构化提示词生成图像，并直接把结果写入作品库。</p>
-      </div>
-      <div class="muted-panel px-6 py-6">
-        <p class="section-kicker">02</p>
-        <h3 class="mt-3 font-display text-3xl">作品管理</h3>
-        <p class="mt-3 text-sm leading-7 text-ink/62">支持上传、公开/隐藏、筛选、编辑和后续策展调用。</p>
-      </div>
-      <div class="muted-panel px-6 py-6">
-        <p class="section-kicker">03</p>
-        <h3 class="mt-3 font-display text-3xl">线上展厅</h3>
-        <p class="mt-3 text-sm leading-7 text-ink/62">教师和管理员可以把作品编排成公开展览，形成完整叙事。</p>
-      </div>
-    </section>
-
     <section class="space-y-6">
       <SectionTitle
         kicker="公共画廊"
